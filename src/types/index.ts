@@ -359,3 +359,87 @@ export interface ADRReportForm {
   causality: CausalityAssessment;
   narrative: string;
 }
+
+export type ConsultationStepType =
+  | "identify"
+  | "initial-therapy"
+  | "adjustment"
+  | "adr-management";
+
+export interface ConsultationReference {
+  title: string;
+  type: "drug" | "chapter" | "interaction";
+  targetId: string;
+}
+
+export interface ConsultationOption {
+  id: string;
+  label: string;
+  description?: string;
+  score: number;
+  isOptimal?: boolean;
+  feedback: string;
+  references?: ConsultationReference[];
+}
+
+export interface ConsultationStep {
+  id: string;
+  type: ConsultationStepType;
+  title: string;
+  description: string;
+  question: string;
+  options: ConsultationOption[];
+  expertExplanation: string;
+  references?: ConsultationReference[];
+}
+
+export interface ConsultationVitalSign {
+  name: string;
+  value: string;
+  status?: "normal" | "abnormal";
+}
+
+export interface ConsultationLabResult {
+  test: string;
+  value: string;
+  reference: string;
+  status?: "normal" | "abnormal";
+}
+
+export interface ConsultationPatientInfo {
+  age: number;
+  gender: "male" | "female";
+  weight: number;
+  height?: number;
+  allergies: string[];
+  medicalHistory: string[];
+  currentMedications: {
+    name: string;
+    dose: string;
+    frequency: string;
+    duration: string;
+    indication: string;
+  }[];
+  vitalSigns: ConsultationVitalSign[];
+  labResults: ConsultationLabResult[];
+}
+
+export interface ConsultationCase {
+  id: string;
+  title: string;
+  difficulty: "easy" | "medium" | "hard";
+  category: string;
+  chiefComplaint: string;
+  presentIllness: string;
+  patientInfo: ConsultationPatientInfo;
+  steps: ConsultationStep[];
+  finalSummary: string;
+  learningPoints: string[];
+  totalMaxScore: number;
+}
+
+export interface UserConsultationAnswer {
+  stepId: string;
+  selectedOptionId: string;
+  score: number;
+}
