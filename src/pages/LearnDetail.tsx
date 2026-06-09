@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ArrowLeft, Tag, BookOpen, CheckCircle2, AlertCircle } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -95,6 +95,13 @@ export default function LearnDetail() {
     chapter ? chapter.quizzes.map(() => null) : []
   );
   const [showResults, setShowResults] = useState(false);
+
+  useEffect(() => {
+    if (chapter) {
+      setQuizAnswers(chapter.quizzes.map(() => null));
+      setShowResults(false);
+    }
+  }, [chapterId, chapter]);
 
   if (!chapter) {
     return (

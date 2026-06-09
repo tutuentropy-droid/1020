@@ -55,7 +55,7 @@ export const useStore = create<Store>()(
           currentQuiz: {
             questions,
             currentIndex: 0,
-            userAnswers: [],
+            userAnswers: new Array(questions.length).fill(undefined),
           },
         });
       },

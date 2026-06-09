@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ClipboardList, Clock, Trophy, ChevronRight, Target, History, Sparkles } from "lucide-react";
+import { useState, useMemo } from "react";
+import { ClipboardList, Clock, Trophy, ChevronRight, Target, History, Sparkles, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { quizQuestions } from "@/data/questions";
 import { useStore } from "@/store/useStore";
@@ -31,12 +31,24 @@ export default function QuizHome() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedDifficulty, setSelectedDifficulty] = useState("all");
 
+  const availableQuestions = useMemo(() => {
+    let filtered = quizQuestions;
+    if (selectedCategory !== "all") {
+      filtered = filtered.filter((q) => q.category === selectedCategory);
+    }
+    if (selectedDifficulty !== "all") {
+      filtered = filtered.filter((q) => q.difficulty === selectedDifficulty);
+    }
+    return filtered;
+  }, [selectedCategory, selectedDifficulty]);
+
+  const actualQuestionCount = Math.min(QUIZ_COUNT, availableQuestions.length);
+  const hasInsufficientQuestions = availableQuestions.length < QUIZ_COUNT;
+
   const handleStartQuiz = () => {
     const questions = getRandomQuestions(
-      quizQuestions,
-      QUIZ_COUNT,
-      selectedCategory,
-      selectedDifficulty
+      availableQuestions,
+      QUIZ_COUNT
     );
     if (questions.length === 0) {
       alert("暂无符合条件的题目，请调整筛选条件");
@@ -136,13 +148,27 @@ export default function QuizHome() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50 border border-gray-100 mb-6">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50 border border-gray-100 mb-3">
             <div className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-gray-500" />
               <span className="text-gray-700">题目数量</span>
             </div>
-            <span className="font-semibold text-gray-900">{QUIZ_COUNT} 道</span>
+            <span className="font-semibold text-gray-900">{actualQuestionCount} 道</span>
           </div>
+
+          {hasInsufficientQuestions && (
+            <div className="flex items-start gap-2 p-4 rounded-xl bg-warning-50 border border-warning-200 mb-6 animate-fade-in">
+              <AlertTriangle className="w-5 h-5 text-warning-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-warning-800">
+                  当前筛选条件下只有 {availableQuestions.length} 道题
+                </p>
+                <p className="text-xs text-warning-600 mt-0.5">
+                  已自动调整为可用数量，可切换分类或难度以获得更多题目
+                </p>
+              </div>
+            </div>
+          )}
 
           <button
             onClick={handleStartQuiz}
