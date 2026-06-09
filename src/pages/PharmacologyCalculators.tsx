@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Calculator, Baby, FlaskConical, Ruler, Syringe, Activity, Info } from "lucide-react";
 import PediatricDoseCalculator from "@/components/Calculators/PediatricDoseCalculator";
 import CreatinineClearanceCalculator from "@/components/Calculators/CreatinineClearanceCalculator";
@@ -53,7 +54,22 @@ const calculatorTabs: {
 ];
 
 export default function PharmacologyCalculators() {
-  const [activeTab, setActiveTab] = useState<CalculatorType>("pediatric-dose");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabFromUrl = searchParams.get("tab") as CalculatorType | null;
+  const validTabs = calculatorTabs.map((t) => t.id);
+  const initialTab = tabFromUrl && validTabs.includes(tabFromUrl) ? tabFromUrl : "pediatric-dose";
+  const [activeTab, setActiveTab] = useState<CalculatorType>(initialTab);
+
+  useEffect(() => {
+    if (tabFromUrl && validTabs.includes(tabFromUrl) && tabFromUrl !== activeTab) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [tabFromUrl, activeTab, validTabs]);
+
+  const handleTabChange = (tabId: CalculatorType) => {
+    setActiveTab(tabId);
+    setSearchParams({ tab: tabId });
+  };
 
   const renderCalculator = () => {
     switch (activeTab) {
@@ -103,7 +119,7 @@ export default function PharmacologyCalculators() {
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabChange(tab.id)}
               className={cn(
                 "group relative text-left p-4 rounded-2xl border transition-all duration-300",
                 isActive

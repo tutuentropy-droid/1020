@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Stethoscope,
@@ -20,6 +20,9 @@ import {
   Target,
   FlaskConical,
   ShieldAlert,
+  History,
+  ArrowRight,
+  Info,
 } from "lucide-react";
 import {
   consultationCases,
@@ -38,6 +41,39 @@ import { cn } from "@/lib/utils";
 type ConsultationView = "list" | "case";
 type StepPhase = "question" | "feedback";
 
+const STORAGE_KEY = "consultation_progress_v1";
+
+interface PersistedState {
+  caseId: string;
+  currentStepIndex: number;
+  selectedOptionId: string | null;
+  stepPhase: StepPhase;
+  answers: UserConsultationAnswer[];
+  showFinal: boolean;
+}
+
+const loadPersistedState = (): PersistedState | null => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as PersistedState;
+  } catch {
+    return null;
+  }
+};
+
+const savePersistedState = (state: PersistedState | null) => {
+  try {
+    if (state === null) {
+      localStorage.removeItem(STORAGE_KEY);
+    } else {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+  } catch {
+    /* ignore */
+  }
+};
+
 export default function CaseConsultation() {
   const navigate = useNavigate();
   const [view, setView] = useState<ConsultationView>("list");
@@ -49,6 +85,51 @@ export default function CaseConsultation() {
   const [showFinal, setShowFinal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [difficultyFilter, setDifficultyFilter] = useState<string>("all");
+  const [showRestorePrompt, setShowRestorePrompt] = useState(false);
+  const [savedState, setSavedState] = useState<PersistedState | null>(null);
+
+  useEffect(() => {
+    const persisted = loadPersistedState();
+    if (persisted) {
+      setSavedState(persisted);
+      setShowRestorePrompt(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (view === "case" && currentCase) {
+      savePersistedState({
+        caseId: currentCase.id,
+        currentStepIndex,
+        selectedOptionId,
+        stepPhase,
+        answers,
+        showFinal,
+      });
+    }
+  }, [view, currentCase, currentStepIndex, selectedOptionId, stepPhase, answers, showFinal]);
+
+  const restoreFromSaved = () => {
+    if (!savedState) return;
+    const caseData = consultationCases.find((c) => c.id === savedState.caseId);
+    if (caseData) {
+      setCurrentCase(caseData);
+      setCurrentStepIndex(savedState.currentStepIndex);
+      setSelectedOptionId(savedState.selectedOptionId);
+      setStepPhase(savedState.stepPhase);
+      setAnswers(savedState.answers);
+      setShowFinal(savedState.showFinal);
+      setView("case");
+    }
+    setShowRestorePrompt(false);
+    setSavedState(null);
+  };
+
+  const discardSaved = () => {
+    savePersistedState(null);
+    setShowRestorePrompt(false);
+    setSavedState(null);
+  };
 
   const filteredCases = useMemo(() => {
     return consultationCases.filter((c) => {
@@ -68,6 +149,38 @@ export default function CaseConsultation() {
     return answers.reduce((sum, a) => sum + a.score, 0);
   }, [answers]);
 
+  const previousAnswersForContext = useMemo(() => {
+    if (!currentCase) return [];
+    return answers
+      .map((a) => {
+        const step = currentCase.steps.find((s) => s.id === a.stepId);
+        const option = step?.options.find((o) => o.id === a.selectedOptionId);
+        if (!step || !option) return null;
+        return {
+          stepId: step.id,
+          stepTitle: step.title,
+          stepType: step.type,
+          selectedOptionLabel: option.label,
+          selectedOptionScore: option.score,
+          isOptimal: option.isOptimal === true,
+          maxScore: Math.max(...step.options.map((o) => o.score)),
+        };
+      })
+      .filter(Boolean) as {
+      stepId: string;
+      stepTitle: string;
+      stepType: string;
+      selectedOptionLabel: string;
+      selectedOptionScore: number;
+      isOptimal: boolean;
+      maxScore: number;
+    }[];
+  }, [answers, currentCase]);
+
+  const hasSuboptimalChoices = useMemo(() => {
+    return previousAnswersForContext.some((a) => !a.isOptimal);
+  }, [previousAnswersForContext]);
+
   const startCase = (caseData: ConsultationCase) => {
     setCurrentCase(caseData);
     setCurrentStepIndex(0);
@@ -76,6 +189,10 @@ export default function CaseConsultation() {
     setAnswers([]);
     setShowFinal(false);
     setView("case");
+    if (savedState) {
+      savePersistedState(null);
+      setSavedState(null);
+    }
   };
 
   const resetCase = () => {
@@ -134,6 +251,8 @@ export default function CaseConsultation() {
       navigate(`/drugs/${ref.targetId}`);
     } else if (ref.type === "interaction") {
       navigate("/interactions");
+    } else if (ref.type === "calculator") {
+      navigate(`/calculators?tab=${ref.targetId}`);
     }
   };
 
@@ -164,6 +283,37 @@ export default function CaseConsultation() {
   if (view === "list") {
     return (
       <div className="space-y-8 animate-fade-in">
+        {showRestorePrompt && savedState && (
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5 flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center flex-shrink-0 shadow-md">
+              <History className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-bold text-amber-900 mb-1">发现未完成的会诊</h3>
+              <p className="text-sm text-amber-700 mb-3">
+                您有一个未完成的病例会诊（
+                {consultationCases.find((c) => c.id === savedState.caseId)?.title ??
+                  savedState.caseId}
+                ），是否恢复上次进度？
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={restoreFromSaved}
+                  className="px-4 py-2 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-medium shadow hover:shadow-md transition-all"
+                >
+                  恢复进度
+                </button>
+                <button
+                  onClick={discardSaved}
+                  className="px-4 py-2 rounded-lg bg-white border border-amber-200 text-amber-700 text-sm font-medium hover:bg-amber-100 transition-all"
+                >
+                  重新开始
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg">
             <Stethoscope className="w-6 h-6 text-white" />
@@ -190,7 +340,7 @@ export default function CaseConsultation() {
                 <span className="font-semibold text-indigo-700">②选择初始药物方案</span>、
                 <span className="font-semibold text-indigo-700">③调整剂量或换药</span>、
                 <span className="font-semibold text-indigo-700">④处理不良反应</span>。
-                每步选择后会获得即时反馈和专家解读，最终给出综合评分。
+                每步选择后会获得即时反馈和专家解读。若前一步选择非最优方案，后续步骤会提供决策修正说明，帮助您理解正确的临床思维路径。
               </p>
             </div>
           </div>
@@ -414,6 +564,7 @@ export default function CaseConsultation() {
               const level = answer
                 ? getScoreLevel(answer.score, maxScoreForStep)
                 : { label: "-", color: "text-gray-400", bg: "bg-gray-50" };
+              const prevAnswer = previousAnswersForContext[idx];
               return (
                 <div key={step.id} className={cn("rounded-xl p-4 border text-center", level.bg)}>
                   <div className="text-xs text-gray-500 mb-1">步骤{idx + 1}</div>
@@ -424,10 +575,31 @@ export default function CaseConsultation() {
                     {answer?.score ?? 0}
                   </div>
                   <div className="text-xs text-gray-400">/ {maxScoreForStep}</div>
+                  {prevAnswer && !prevAnswer.isOptimal && (
+                    <div className="mt-1.5 text-xs text-amber-600">
+                      <AlertTriangle className="w-3 h-3 inline mr-1" />
+                      非最优
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
+
+          {hasSuboptimalChoices && (
+            <div className="mb-8 p-5 bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border border-amber-200">
+              <div className="flex items-start gap-3">
+                <Info className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h4 className="font-semibold text-amber-900 mb-2">学习说明</h4>
+                  <p className="text-sm text-amber-800 leading-relaxed">
+                    本病例中您有部分步骤未选择最优方案，这是完全正常的学习过程。请仔细阅读下方的专家解读和核心学习要点，对比自己的决策思路与推荐方案的差异。
+                    您可以随时点击「重新挑战」再次练习，巩固正确的临床决策思维。
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="bg-gradient-to-br from-indigo-50 to-violet-50 rounded-2xl p-6 border border-indigo-100 mb-8">
             <div className="flex items-center gap-3 mb-4">
@@ -461,6 +633,9 @@ export default function CaseConsultation() {
       </div>
     );
   }
+
+  const previousAnswer =
+    currentStepIndex > 0 ? previousAnswersForContext[currentStepIndex - 1] : null;
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -497,21 +672,17 @@ export default function CaseConsultation() {
             <div className="flex items-center gap-2 mb-1 flex-wrap">
               <h2 className="text-xl md:text-2xl font-bold">{currentCase.title}</h2>
               <span
-                className={cn(
-                  "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border",
-                  getDifficultyColor(currentCase.difficulty).replace(
-                    "bg-",
-                    "bg-white/"
-                  )
-                )}
-                style={{ background: "rgba(255,255,255,0.2)", borderColor: "rgba(255,255,255,0.3)", color: "white" }}
+                className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border"
+                style={{
+                  background: "rgba(255,255,255,0.2)",
+                  borderColor: "rgba(255,255,255,0.3)",
+                  color: "white",
+                }}
               >
                 {getDifficultyLabel(currentCase.difficulty)}
               </span>
             </div>
-            <p className="text-indigo-100 text-sm">
-              类别：{currentCase.category}
-            </p>
+            <p className="text-indigo-100 text-sm">类别：{currentCase.category}</p>
           </div>
         </div>
       </div>
@@ -521,6 +692,7 @@ export default function CaseConsultation() {
           const isActive = idx === currentStepIndex;
           const isPast = idx < currentStepIndex;
           const answer = answers.find((a) => a.stepId === step.id);
+          const prevAns = previousAnswersForContext[idx];
           return (
             <div key={step.id} className="flex items-center gap-2 flex-1">
               <div
@@ -529,7 +701,9 @@ export default function CaseConsultation() {
                   isActive
                     ? "bg-white text-indigo-700 border-2 border-indigo-300 shadow-md"
                     : isPast
-                    ? "bg-green-50 text-green-700 border border-green-200"
+                    ? prevAns?.isOptimal
+                      ? "bg-green-50 text-green-700 border border-green-200"
+                      : "bg-amber-50 text-amber-700 border border-amber-200"
                     : "bg-gray-50 text-gray-500 border border-gray-200"
                 )}
               >
@@ -539,22 +713,25 @@ export default function CaseConsultation() {
                     isActive
                       ? "bg-indigo-500 text-white"
                       : isPast
-                      ? "bg-green-500 text-white"
+                      ? prevAns?.isOptimal
+                        ? "bg-green-500 text-white"
+                        : "bg-amber-500 text-white"
                       : "bg-gray-200 text-gray-600"
                   )}
                 >
-                  {isPast && answer ? (
-                    <CheckCircle2 className="w-4 h-4" />
-                  ) : (
-                    idx + 1
-                  )}
+                  {isPast && answer ? <CheckCircle2 className="w-4 h-4" /> : idx + 1}
                 </div>
                 <div className="min-w-0 flex-1 hidden sm:block">
                   <div className="text-xs font-medium truncate">
                     {getStepTypeLabel(step.type)}
                   </div>
                   {isPast && answer && (
-                    <div className="text-xs opacity-75">{answer.score}分</div>
+                    <div className="text-xs opacity-75 flex items-center gap-1">
+                      {answer.score}分
+                      {prevAns && !prevAns.isOptimal && (
+                        <AlertTriangle className="w-3 h-3" />
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
@@ -568,6 +745,59 @@ export default function CaseConsultation() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
+          {previousAnswer && !previousAnswer.isOptimal && (
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center flex-shrink-0 shadow">
+                  <ArrowRight className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-amber-900 mb-2 flex items-center gap-2">
+                    <History className="w-4 h-4" />
+                    上一步决策回顾
+                  </h4>
+                  <div className="text-sm text-amber-800 space-y-2">
+                    <p>
+                      您在「<span className="font-semibold">{previousAnswer.stepTitle}</span>
+                      」中选择的方案：
+                    </p>
+                    <div className="bg-white/70 rounded-lg p-3 border border-amber-200">
+                      <p className="text-amber-900">{previousAnswer.selectedOptionLabel}</p>
+                    </div>
+                    <p className="leading-relaxed">
+                      该选择并非本步骤的最优方案（得分 {previousAnswer.selectedOptionScore}
+                      /{previousAnswer.maxScore} 分）。
+                      <span className="font-semibold">
+                        为保证后续学习的连贯性和决策链完整，接下来的步骤将基于专家推荐的正确临床路径继续推进。
+                      </span>{" "}
+                      请您对比自己的决策思路和标准方案的差异，理解为何需要做出不同选择。
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {previousAnswer && previousAnswer.isOptimal && (
+            <div className="bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-2xl p-5">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center flex-shrink-0 shadow">
+                  <CheckCircle2 className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-emerald-900 mb-1 flex items-center gap-2">
+                    <History className="w-4 h-4" />
+                    上一步决策正确
+                  </h4>
+                  <p className="text-sm text-emerald-800 leading-relaxed">
+                    您在「{previousAnswer.stepTitle}」中做出了最优选择（满分{" "}
+                    {previousAnswer.maxScore} 分）。请继续保持这个临床思维进行下一步决策。
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
             <div className="flex items-center gap-3 mb-5">
               <div
@@ -579,9 +809,7 @@ export default function CaseConsultation() {
                   currentStep.type === "adr-management" && "bg-rose-50"
                 )}
               >
-                {currentStep.type === "identify" && (
-                  <Target className="w-5 h-5 text-blue-600" />
-                )}
+                {currentStep.type === "identify" && <Target className="w-5 h-5 text-blue-600" />}
                 {currentStep.type === "initial-therapy" && (
                   <Pill className="w-5 h-5 text-emerald-600" />
                 )}

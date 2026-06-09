@@ -368,7 +368,7 @@ export type ConsultationStepType =
 
 export interface ConsultationReference {
   title: string;
-  type: "drug" | "chapter" | "interaction";
+  type: "drug" | "chapter" | "interaction" | "calculator";
   targetId: string;
 }
 

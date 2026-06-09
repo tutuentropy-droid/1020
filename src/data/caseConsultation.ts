@@ -256,7 +256,7 @@ export const consultationCases: ConsultationCase[] = [
               "处理非常规范！①螺内酯是高钾血症的常见原因，eGFR下降时应停用；②ACEI（培哚普利）可引起血钾升高和Scr轻度上升，通常Scr上升<30%可继续使用，减量+密切监测即可；③血钾>5.5需干预，>6.5需紧急处理；④继续使用袢利尿剂有助于排钾和维持容量稳定。",
             references: [
               { title: "心血管药物 - ACEI不良反应", type: "chapter", targetId: "chapter-2" },
-              { title: "药理计算器 - 肌酐清除率计算", type: "chapter", targetId: "chapter-2" },
+              { title: "药理计算器 - 肌酐清除率计算", type: "calculator", targetId: "creatinine-clearance" },
             ],
           },
           {
