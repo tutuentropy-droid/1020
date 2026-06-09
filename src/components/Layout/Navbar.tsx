@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, BookOpen, Pill, FileQuestion, TrendingUp, AlertTriangle, Library } from "lucide-react";
+import { Home, BookOpen, Pill, FileQuestion, TrendingUp, AlertTriangle, Library, BookX } from "lucide-react";
 
 const navItems = [
   { path: "/", label: "首页", icon: Home },
@@ -8,6 +8,7 @@ const navItems = [
   { path: "/cases", label: "典型案例库", icon: Library },
   { path: "/learn", label: "学习模块", icon: BookOpen },
   { path: "/quiz", label: "测验系统", icon: FileQuestion },
+  { path: "/wrong-book", label: "错题本", icon: BookX },
   { path: "/progress", label: "我的进度", icon: TrendingUp },
 ];
 

@@ -1,9 +1,22 @@
 import { useState, useMemo } from "react";
-import { ClipboardList, Clock, Trophy, ChevronRight, Target, History, Sparkles, AlertTriangle } from "lucide-react";
+import {
+  ClipboardList,
+  Clock,
+  Trophy,
+  ChevronRight,
+  Target,
+  History,
+  Sparkles,
+  AlertTriangle,
+  BookX,
+  RefreshCw,
+  Zap,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { quizQuestions } from "@/data/questions";
 import { useStore } from "@/store/useStore";
 import { getRandomQuestions, formatDate } from "@/utils/helpers";
+import { cn } from "@/lib/utils";
 
 const categories = [
   { value: "all", label: "全部分类" },
@@ -26,7 +39,13 @@ const QUIZ_COUNT = 10;
 
 export default function QuizHome() {
   const navigate = useNavigate();
-  const { startQuiz, quizHistory } = useStore();
+  const {
+    startQuiz,
+    quizHistory,
+    wrongQuestions,
+    getSmartQuizQuestions,
+    questionStats,
+  } = useStore();
 
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedDifficulty, setSelectedDifficulty] = useState("all");
@@ -42,8 +61,14 @@ export default function QuizHome() {
     return filtered;
   }, [selectedCategory, selectedDifficulty]);
 
+  const activeWrongCount = wrongQuestions.filter((w) => !w.mastered).length;
+
   const actualQuestionCount = Math.min(QUIZ_COUNT, availableQuestions.length);
   const hasInsufficientQuestions = availableQuestions.length < QUIZ_COUNT;
+
+  const totalAttempts = questionStats.reduce((sum, s) => sum + s.totalAttempts, 0);
+  const totalCorrect = questionStats.reduce((sum, s) => sum + s.correctAttempts, 0);
+  const overallAccuracy = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
 
   const handleStartQuiz = () => {
     const questions = getRandomQuestions(
@@ -52,6 +77,23 @@ export default function QuizHome() {
     );
     if (questions.length === 0) {
       alert("暂无符合条件的题目，请调整筛选条件");
+      return;
+    }
+    startQuiz(questions);
+    navigate("/quiz/active");
+  };
+
+  const handleSmartPractice = () => {
+    if (activeWrongCount === 0) {
+      alert("错题本为空，无法开始智能重练。先完成一些测验积累错题吧！");
+      return;
+    }
+    const questions = getSmartQuizQuestions(
+      { totalQuestions: Math.min(10, activeWrongCount + 5) },
+      selectedCategory !== "all" ? selectedCategory : undefined
+    );
+    if (questions.length === 0) {
+      alert("暂无可用题目");
       return;
     }
     startQuiz(questions);
@@ -73,7 +115,7 @@ export default function QuizHome() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
           <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-primary-50 flex items-center justify-center">
               <Target className="w-6 h-6 text-primary-600" />
@@ -105,7 +147,56 @@ export default function QuizHome() {
               </p>
             </div>
           </div>
+          <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-rose-50 flex items-center justify-center">
+              <BookX className="w-6 h-6 text-rose-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">待复习错题</p>
+              <p className="text-2xl font-bold text-gray-900">{activeWrongCount}</p>
+            </div>
+          </div>
         </div>
+
+        {activeWrongCount > 0 && (
+          <div className="bg-gradient-to-r from-rose-500 to-orange-500 rounded-2xl p-6 mb-8 text-white shadow-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+                  <Zap className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold mb-1">智能重练模式</h3>
+                  <p className="text-sm text-white/90">
+                    你有 {activeWrongCount} 道错题待复习。智能重练会优先抽取错题，
+                    再混合类似题目，帮你高效攻克薄弱知识点！
+                  </p>
+                  {overallAccuracy > 0 && (
+                    <p className="text-sm text-white/80 mt-1">
+                      当前整体正确率：{overallAccuracy}%
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2 flex-shrink-0">
+                <button
+                  onClick={() => navigate("/wrong-book")}
+                  className="px-5 py-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white font-medium transition-all inline-flex items-center justify-center gap-1.5"
+                >
+                  <BookX className="w-4 h-4" />
+                  查看错题本
+                </button>
+                <button
+                  onClick={handleSmartPractice}
+                  className="px-5 py-2.5 rounded-xl bg-white hover:bg-white/90 text-rose-600 font-semibold transition-all inline-flex items-center justify-center gap-1.5 shadow-md"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  开始智能重练
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 mb-8">
           <div className="flex items-center gap-2 mb-6">

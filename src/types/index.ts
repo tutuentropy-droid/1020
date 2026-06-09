@@ -44,6 +44,27 @@ export interface QuizQuestion {
   explanation: string;
   category: string;
   difficulty: "easy" | "medium" | "hard";
+  tags?: string[];
+}
+
+export interface WrongQuestion {
+  questionId: string;
+  wrongCount: number;
+  lastWrongDate: string;
+  wrongAnswers: number[];
+  mastered: boolean;
+}
+
+export interface QuestionStats {
+  questionId: string;
+  totalAttempts: number;
+  correctAttempts: number;
+  lastAttemptDate?: string;
+}
+
+export interface SmartQuizConfig {
+  wrongQuestionRatio: number;
+  totalQuestions: number;
 }
 
 export interface ChapterQuiz {
@@ -90,6 +111,8 @@ export interface AppState {
     currentIndex: number;
     userAnswers: number[];
   } | null;
+  wrongQuestions: WrongQuestion[];
+  questionStats: QuestionStats[];
 }
 
 export interface AppActions {
@@ -99,4 +122,11 @@ export interface AppActions {
   nextQuestion: () => void;
   finishQuiz: () => QuizHistory;
   clearCurrentQuiz: () => void;
+  addWrongQuestion: (questionId: string, userAnswer: number) => void;
+  removeWrongQuestion: (questionId: string) => void;
+  markWrongQuestionMastered: (questionId: string) => void;
+  updateQuestionStats: (questionId: string, isCorrect: boolean) => void;
+  getQuestionAccuracy: (questionId: string) => number;
+  getSmartQuizQuestions: (config?: Partial<SmartQuizConfig>, category?: string) => QuizQuestion[];
+  clearWrongQuestions: () => void;
 }

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Pill, BookOpen, FileQuestion, TrendingUp, ArrowRight, GraduationCap, Target, Award, AlertTriangle, Library } from "lucide-react";
+import { Pill, BookOpen, FileQuestion, TrendingUp, ArrowRight, GraduationCap, Target, Award, AlertTriangle, Library, BookX, Zap } from "lucide-react";
 import { useStore } from "@/store/useStore";
 
 const featureCards = [
@@ -44,17 +44,25 @@ const featureCards = [
     bgLight: "bg-amber-50",
   },
   {
+    title: "错题本",
+    description: "自动收录答错题目，智能重练模式优先攻克薄弱知识点",
+    icon: BookX,
+    link: "/wrong-book",
+    gradient: "from-rose-500 to-red-600",
+    bgLight: "bg-rose-50",
+  },
+  {
     title: "个人进度",
     description: "实时追踪学习进度、测验成绩，可视化展示成长轨迹",
     icon: TrendingUp,
     link: "/progress",
-    gradient: "from-rose-500 to-pink-600",
+    gradient: "from-fuchsia-500 to-pink-600",
     bgLight: "bg-rose-50",
   },
 ];
 
 export default function Home() {
-  const { learningProgress, quizHistory } = useStore();
+  const { learningProgress, quizHistory, wrongQuestions, questionStats } = useStore();
 
   const completedChapters = learningProgress.filter((p) => p.status === "completed").length;
   const totalQuizzes = quizHistory.length;
@@ -64,6 +72,10 @@ export default function Home() {
           quizHistory.reduce((sum, q) => sum + (q.score / q.totalQuestions) * 100, 0) / totalQuizzes
         )
       : 0;
+  const activeWrongCount = wrongQuestions.filter((w) => !w.mastered).length;
+  const totalAttempts = questionStats.reduce((sum, s) => sum + s.totalAttempts, 0);
+  const totalCorrect = questionStats.reduce((sum, s) => sum + s.correctAttempts, 0);
+  const overallAccuracy = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
 
   const stats = [
     {
@@ -86,6 +98,13 @@ export default function Home() {
       icon: Award,
       color: "text-warning-600",
       bg: "bg-warning-50",
+    },
+    {
+      label: "待复习错题",
+      value: activeWrongCount,
+      icon: BookX,
+      color: "text-rose-600",
+      bg: "bg-rose-50",
     },
   ];
 
@@ -120,7 +139,22 @@ export default function Home() {
             >
               浏览药物库
             </Link>
+            {activeWrongCount > 0 && (
+              <Link
+                to="/wrong-book"
+                className="inline-flex items-center gap-2 px-7 py-3.5 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
+              >
+                <Zap className="w-5 h-5" />
+                智能重练 ({activeWrongCount} 道错题)
+              </Link>
+            )}
           </div>
+          {overallAccuracy > 0 && (
+            <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-white/80 text-sm">
+              <Target className="w-4 h-4" />
+              <span>整体答题正确率：{overallAccuracy}%</span>
+            </div>
+          )}
         </div>
       </section>
 

@@ -10,6 +10,7 @@ import QuizHome from "@/pages/QuizHome";
 import QuizActive from "@/pages/QuizActive";
 import QuizResult from "@/pages/QuizResult";
 import Progress from "@/pages/Progress";
+import WrongBook from "@/pages/WrongBook";
 import Layout from "@/components/Layout/Layout";
 
 export default function App() {
@@ -27,6 +28,7 @@ export default function App() {
           <Route path="/quiz" element={<QuizHome />} />
           <Route path="/quiz/active" element={<QuizActive />} />
           <Route path="/quiz/result" element={<QuizResult />} />
+          <Route path="/wrong-book" element={<WrongBook />} />
           <Route path="/progress" element={<Progress />} />
         </Routes>
       </Layout>

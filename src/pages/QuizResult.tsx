@@ -1,4 +1,4 @@
-import { Trophy, Home, RefreshCw, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+import { Trophy, Home, RefreshCw, CheckCircle2, XCircle, AlertCircle, BookX, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import QuestionCard from "@/components/QuestionCard";
 import ProgressBar from "@/components/ProgressBar";
@@ -8,7 +8,13 @@ import { cn } from "@/lib/utils";
 
 export default function QuizResult() {
   const navigate = useNavigate();
-  const { quizHistory, startQuiz } = useStore();
+  const {
+    quizHistory,
+    startQuiz,
+    wrongQuestions,
+    getSmartQuizQuestions,
+    getQuestionAccuracy,
+  } = useStore();
 
   const latestResult = quizHistory[0];
 
@@ -35,16 +41,19 @@ export default function QuizResult() {
     const question = quizQuestions.find((q) => q.id === qId);
     const userAnswer = latestResult.userAnswers[index];
     const isCorrect = question !== undefined && userAnswer === question.correctAnswer;
+    const accuracy = question ? getQuestionAccuracy(question.id) : -1;
     return {
       question,
       userAnswer,
       isCorrect,
       index,
+      accuracy,
     };
   });
 
   const correctCount = questionsWithAnswers.filter((q) => q.isCorrect).length;
   const wrongCount = questionsWithAnswers.filter((q) => !q.isCorrect).length;
+  const activeWrongCount = wrongQuestions.filter((w) => !w.mastered).length;
 
   const getResultGrade = () => {
     if (percentage >= 90)
@@ -60,6 +69,20 @@ export default function QuizResult() {
 
   const handleRetry = () => {
     const questions = quizQuestions.filter((q) => latestResult.questionIds.includes(q.id));
+    startQuiz(questions);
+    navigate("/quiz/active");
+  };
+
+  const handleSmartPractice = () => {
+    if (activeWrongCount === 0) {
+      alert("错题本为空，无法开始智能重练");
+      return;
+    }
+    const questions = getSmartQuizQuestions({ totalQuestions: Math.min(10, activeWrongCount + 5) });
+    if (questions.length === 0) {
+      alert("暂无可用题目");
+      return;
+    }
     startQuiz(questions);
     navigate("/quiz/active");
   };
@@ -122,23 +145,55 @@ export default function QuizResult() {
                 </span>
               </div>
             </div>
+
+            {wrongCount > 0 && (
+              <div className="mt-6 text-sm text-gray-600">
+                <p>
+                  答错的题目已自动收录到
+                  <button
+                    onClick={() => navigate("/wrong-book")}
+                    className="mx-1 text-primary-600 hover:underline font-medium inline-flex items-center gap-0.5"
+                  >
+                    <BookX className="w-3.5 h-3.5" />
+                    错题本
+                  </button>
+                  ，可随时复习！
+                </p>
+              </div>
+            )}
           </div>
 
-          <div className="p-6 bg-white flex flex-col sm:flex-row gap-3">
+          <div className="p-6 bg-white flex flex-col sm:flex-row sm:flex-wrap gap-3">
             <button
               onClick={() => navigate("/quiz")}
-              className="btn-secondary flex-1 inline-flex items-center justify-center gap-2"
+              className="btn-secondary flex-1 min-w-[140px] inline-flex items-center justify-center gap-2"
             >
               <Home className="w-4 h-4" />
               返回首页
             </button>
             <button
+              onClick={() => navigate("/wrong-book")}
+              className="btn-secondary flex-1 min-w-[140px] inline-flex items-center justify-center gap-2"
+            >
+              <BookX className="w-4 h-4" />
+              查看错题本
+            </button>
+            <button
               onClick={handleRetry}
-              className="btn-primary flex-1 inline-flex items-center justify-center gap-2"
+              className="btn-secondary flex-1 min-w-[140px] inline-flex items-center justify-center gap-2"
             >
               <RefreshCw className="w-4 h-4" />
               再来一次
             </button>
+            {activeWrongCount > 0 && (
+              <button
+                onClick={handleSmartPractice}
+                className="btn-primary flex-1 min-w-[140px] inline-flex items-center justify-center gap-2"
+              >
+                <Zap className="w-4 h-4" />
+                智能重练
+              </button>
+            )}
           </div>
         </div>
 
@@ -150,7 +205,7 @@ export default function QuizResult() {
               if (!item.question) return null;
               return (
                 <div key={item.question.id}>
-                  <div className="flex items-center gap-2 mb-3">
+                  <div className="flex flex-wrap items-center gap-2 mb-3">
                     <span
                       className={cn(
                         "inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium",
@@ -174,6 +229,18 @@ export default function QuizResult() {
                         ? "中等"
                         : "困难"}
                     </span>
+                    {item.accuracy >= 0 && (
+                      <span
+                        className={cn(
+                          "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
+                          item.accuracy >= 0.6
+                            ? "bg-primary-50 text-primary-700"
+                            : "bg-warning-50 text-warning-700"
+                        )}
+                      >
+                        历史正确率 {Math.round(item.accuracy * 100)}%
+                      </span>
+                    )}
                   </div>
                   <QuestionCard
                     question={item.question.question}

@@ -1,4 +1,4 @@
-import { TrendingUp, GraduationCap, Trophy, Target, CheckCircle2, Clock, PlayCircle, Calendar, ChevronRight } from "lucide-react";
+import { TrendingUp, GraduationCap, Trophy, Target, CheckCircle2, Clock, PlayCircle, Calendar, ChevronRight, BookX, BarChart3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useStore } from "@/store/useStore";
 import { chapters } from "@/data/chapters";
@@ -14,7 +14,7 @@ const statusLabel: Record<string, { label: string; className: string; icon: type
 
 export default function Progress() {
   const navigate = useNavigate();
-  const { learningProgress, quizHistory } = useStore();
+  const { learningProgress, quizHistory, wrongQuestions, questionStats } = useStore();
 
   const totalChapters = chapters.length;
   const completedChapters = learningProgress.filter((p) => p.status === "completed").length;
@@ -34,6 +34,12 @@ export default function Progress() {
       : 0;
 
   const overallProgress = totalChapters > 0 ? (completedChapters / totalChapters) * 100 : 0;
+
+  const activeWrongCount = wrongQuestions.filter((w) => !w.mastered).length;
+  const masteredWrongCount = wrongQuestions.filter((w) => w.mastered).length;
+  const totalAttempts = questionStats.reduce((sum, s) => sum + s.totalAttempts, 0);
+  const totalCorrect = questionStats.reduce((sum, s) => sum + s.correctAttempts, 0);
+  const overallAccuracy = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
 
   const getProgress = (chapterId: string) => {
     return learningProgress.find((p) => p.chapterId === chapterId);
@@ -66,10 +72,27 @@ export default function Progress() {
       iconColor: "text-warning-600",
     },
     {
-      label: "最高分",
-      value: `${bestScore}%`,
-      icon: TrendingUp,
+      label: "整体正确率",
+      value: `${overallAccuracy}%`,
+      icon: BarChart3,
+      color: "primary",
+      bg: "bg-primary-50",
+      iconColor: "text-primary-600",
+    },
+    {
+      label: "待复习错题",
+      value: activeWrongCount,
+      icon: BookX,
       color: "accent",
+      bg: "bg-rose-50",
+      iconColor: "text-rose-600",
+      action: { label: "查看错题本", path: "/wrong-book" },
+    },
+    {
+      label: "已掌握错题",
+      value: masteredWrongCount,
+      icon: CheckCircle2,
+      color: "warning",
       bg: "bg-accent-50",
       iconColor: "text-accent-600",
     },
@@ -87,19 +110,27 @@ export default function Progress() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
+          const hasAction = (stat as any).action;
           return (
             <div
               key={stat.label}
-              className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition-all duration-300 animate-slide-up"
+              onClick={() => hasAction && navigate((stat as any).action.path)}
+              className={cn(
+                "bg-white rounded-2xl border border-gray-100 p-5 transition-all duration-300 animate-slide-up",
+                hasAction ? "cursor-pointer hover:shadow-md hover:border-primary-200" : "hover:shadow-md"
+              )}
               style={{ animationDelay: `${index * 80}ms` }}
             >
               <div className="flex items-center justify-between mb-4">
                 <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", stat.bg)}>
                   <Icon className={cn("w-5 h-5", stat.iconColor)} />
                 </div>
+                {hasAction && (
+                  <span className="text-xs text-primary-600 font-medium">{(stat as any).action.label} →</span>
+                )}
               </div>
               <div className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</div>
               <div className="text-sm text-gray-500 mb-3">{stat.label}</div>
