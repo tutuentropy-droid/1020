@@ -163,3 +163,122 @@ export interface AppActions {
   getSmartQuizQuestions: (config?: Partial<SmartQuizConfig>, category?: string) => QuizQuestion[];
   clearWrongQuestions: () => void;
 }
+
+export type Gender = "male" | "female";
+
+export type CreatinineUnit = "mg/dL" | "μmol/L";
+
+export interface PediatricDoseParams {
+  adultDose: number;
+  childWeight: number;
+}
+
+export interface PediatricDoseResult {
+  childDose: number;
+  formula: string;
+  derivation: string[];
+}
+
+export interface CreatinineClearanceParams {
+  age: number;
+  weight: number;
+  gender: Gender;
+  creatinine: number;
+  unit: CreatinineUnit;
+}
+
+export interface CreatinineClearanceResult {
+  crcl: number;
+  egfr: number;
+  formula: string;
+  derivation: string[];
+  stage: string;
+  stageColor: string;
+}
+
+export interface BodySurfaceAreaParams {
+  height: number;
+  weight: number;
+}
+
+export interface BodySurfaceAreaResult {
+  bsa: number;
+  formula: string;
+  derivation: string[];
+  method: string;
+}
+
+export interface LoadingDoseParams {
+  targetConcentration: number;
+  volumeOfDistribution: number;
+  bioavailability: number;
+}
+
+export interface MaintenanceDoseParams {
+  targetConcentration: number;
+  clearance: number;
+  bioavailability: number;
+  dosingInterval: number;
+}
+
+export interface DoseResult {
+  loadingDose?: number;
+  maintenanceDose: number;
+  dailyDose: number;
+  formula: string;
+  derivation: string[];
+}
+
+export interface TDMDrugParam {
+  id: string;
+  name: string;
+  category: string;
+  therapeuticRange: string;
+  therapeuticMin: number;
+  therapeuticMax: number;
+  toxicLevel: number;
+  volumeOfDistribution: number;
+  clearance: number;
+  halfLife: number;
+  bioavailability: number;
+  unit: string;
+  description: string;
+  monitoringPoints: string[];
+}
+
+export interface TDMSimulationParams {
+  drugId: string;
+  dose: number;
+  dosingInterval: number;
+  administrationTime: number;
+  sampleTime: number;
+  infusionDuration: number;
+  dosesGiven: number;
+}
+
+export interface TDMSimulationResult {
+  predictedConcentration: number;
+  interpretation: string;
+  status: "subtherapeutic" | "therapeutic" | "toxic";
+  statusColor: string;
+  formula: string;
+  derivation: string[];
+  recommendations: string[];
+}
+
+export interface ClinicalExample {
+  title: string;
+  scenario: string;
+  given: Record<string, number | string>;
+  question: string;
+  solution: string[];
+  answer: string;
+  learningPoint: string;
+}
+
+export type CalculatorType =
+  | "pediatric-dose"
+  | "creatinine-clearance"
+  | "body-surface-area"
+  | "dose-calculation"
+  | "tdm-simulation";

@@ -12,6 +12,7 @@ import QuizResult from "@/pages/QuizResult";
 import Progress from "@/pages/Progress";
 import WrongBook from "@/pages/WrongBook";
 import KnowledgeGraphPage from "@/pages/KnowledgeGraph";
+import PharmacologyCalculators from "@/pages/PharmacologyCalculators";
 import Layout from "@/components/Layout/Layout";
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="/drugs" element={<DrugList />} />
           <Route path="/drugs/:id" element={<DrugDetail />} />
           <Route path="/interactions" element={<DrugInteractionPage />} />
+          <Route path="/calculators" element={<PharmacologyCalculators />} />
           <Route path="/cases" element={<CaseLibrary />} />
           <Route path="/learn" element={<LearnList />} />
           <Route path="/learn/:chapterId" element={<LearnDetail />} />

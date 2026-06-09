@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Pill, BookOpen, FileQuestion, TrendingUp, ArrowRight, GraduationCap, Target, Award, AlertTriangle, Library, BookX, Zap, Network } from "lucide-react";
+import { Pill, BookOpen, FileQuestion, TrendingUp, ArrowRight, GraduationCap, Target, Award, AlertTriangle, Library, BookX, Zap, Network, Calculator } from "lucide-react";
 import { useStore } from "@/store/useStore";
 
 const featureCards = [
@@ -26,6 +26,14 @@ const featureCards = [
     link: "/interactions",
     gradient: "from-orange-500 to-red-600",
     bgLight: "bg-orange-50",
+  },
+  {
+    title: "药理计算器",
+    description: "儿童剂量、肌酐清除率、体表面积、负荷/维持剂量、TDM模拟等临床计算工具集",
+    icon: Calculator,
+    link: "/calculators",
+    gradient: "from-sky-500 to-blue-600",
+    bgLight: "bg-sky-50",
   },
   {
     title: "典型案例库",
