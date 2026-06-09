@@ -76,21 +76,24 @@ interface DrugOptionProps {
   drug: Drug;
   onSelect: () => void;
   isSelected: boolean;
+  isDisabled?: boolean;
 }
 
-function DrugOption({ drug, onSelect, isSelected }: DrugOptionProps) {
+function DrugOption({ drug, onSelect, isSelected, isDisabled }: DrugOptionProps) {
   const colorClass =
     categoryColors[drug.category] ||
     "bg-gray-50 text-gray-700 border-gray-200";
 
+  const disabled = isSelected || isDisabled;
+
   return (
     <div
-      onClick={isSelected ? undefined : onSelect}
+      onClick={disabled ? undefined : onSelect}
       className={cn(
-        "flex items-center gap-3 p-3 rounded-lg transition-all cursor-pointer",
-        isSelected
+        "flex items-center gap-3 p-3 rounded-lg transition-all",
+        disabled
           ? "bg-gray-100 opacity-60 cursor-not-allowed"
-          : "hover:bg-primary-50"
+          : "cursor-pointer hover:bg-primary-50"
       )}
     >
       <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-400 to-accent-400 flex items-center justify-center flex-shrink-0">
@@ -101,6 +104,9 @@ function DrugOption({ drug, onSelect, isSelected }: DrugOptionProps) {
           <h5 className="font-medium text-gray-900 truncate">{drug.name}</h5>
           {isSelected && (
             <span className="text-xs text-gray-500">已添加</span>
+          )}
+          {!isSelected && isDisabled && (
+            <span className="text-xs text-gray-500">已达上限</span>
           )}
         </div>
         <span
@@ -273,6 +279,10 @@ export default function DrugInteractionPage() {
   }, [selectedDrugIds]);
 
   const addDrug = (drugId: string) => {
+    if (selectedDrugIds.length >= 5) {
+      setShowDropdown(false);
+      return;
+    }
     if (!selectedDrugIds.includes(drugId)) {
       setSelectedDrugIds([...selectedDrugIds, drugId]);
     }
@@ -355,6 +365,7 @@ export default function DrugInteractionPage() {
                       drug={drug}
                       onSelect={() => addDrug(drug.id)}
                       isSelected={selectedDrugIds.includes(drug.id)}
+                      isDisabled={selectedDrugIds.length >= 5}
                     />
                   ))}
                 </div>
