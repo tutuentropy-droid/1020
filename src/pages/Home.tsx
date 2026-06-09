@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Pill, BookOpen, FileQuestion, TrendingUp, ArrowRight, GraduationCap, Target, Award } from "lucide-react";
+import { Pill, BookOpen, FileQuestion, TrendingUp, ArrowRight, GraduationCap, Target, Award, AlertTriangle, Library } from "lucide-react";
 import { useStore } from "@/store/useStore";
 
 const featureCards = [
@@ -10,6 +10,22 @@ const featureCards = [
     link: "/drugs",
     gradient: "from-blue-500 to-indigo-600",
     bgLight: "bg-blue-50",
+  },
+  {
+    title: "相互作用查询",
+    description: "快速查询两种或多种药物之间的相互作用风险等级和详细解释",
+    icon: AlertTriangle,
+    link: "/interactions",
+    gradient: "from-orange-500 to-red-600",
+    bgLight: "bg-orange-50",
+  },
+  {
+    title: "典型案例库",
+    description: "学习常见错误配伍的真实临床案例，掌握高危药物组合的识别与处理",
+    icon: Library,
+    link: "/cases",
+    gradient: "from-violet-500 to-purple-600",
+    bgLight: "bg-violet-50",
   },
   {
     title: "学习模块",
@@ -108,7 +124,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {featureCards.map((card, index) => {
           const Icon = card.icon;
           return (

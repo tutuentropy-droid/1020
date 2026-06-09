@@ -10,6 +10,32 @@ export interface Drug {
   description: string;
 }
 
+export type InteractionSeverity = "contraindicated" | "severe" | "moderate" | "mild";
+
+export interface DrugInteraction {
+  id: string;
+  drugAId: string;
+  drugBId: string;
+  severity: InteractionSeverity;
+  description: string;
+  mechanism: string;
+  clinicalSignificance: string;
+  recommendation: string;
+  references: string[];
+}
+
+export interface CaseStudy {
+  id: string;
+  title: string;
+  drugCombination: string[];
+  severity: InteractionSeverity;
+  caseDescription: string;
+  interactionMechanism: string;
+  clinicalOutcome: string;
+  preventionAdvice: string;
+  learningPoints: string[];
+}
+
 export interface QuizQuestion {
   id: string;
   question: string;

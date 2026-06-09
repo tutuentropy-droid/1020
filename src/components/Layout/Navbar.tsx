@@ -1,9 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, BookOpen, Pill, FileQuestion, TrendingUp } from "lucide-react";
+import { Home, BookOpen, Pill, FileQuestion, TrendingUp, AlertTriangle, Library } from "lucide-react";
 
 const navItems = [
   { path: "/", label: "首页", icon: Home },
   { path: "/drugs", label: "药物知识库", icon: Pill },
+  { path: "/interactions", label: "相互作用查询", icon: AlertTriangle },
+  { path: "/cases", label: "典型案例库", icon: Library },
   { path: "/learn", label: "学习模块", icon: BookOpen },
   { path: "/quiz", label: "测验系统", icon: FileQuestion },
   { path: "/progress", label: "我的进度", icon: TrendingUp },
