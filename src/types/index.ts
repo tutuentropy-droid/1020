@@ -103,6 +103,39 @@ export interface QuizHistory {
   userAnswers: number[];
 }
 
+export type GraphNodeType = "drug" | "target" | "disease" | "sideEffect" | "enzyme" | "indication" | "antagonist";
+
+export interface GraphNode {
+  id: string;
+  name: string;
+  type: GraphNodeType;
+  description?: string;
+  category?: string;
+}
+
+export type GraphEdgeType =
+  | "actsOn"
+  | "treats"
+  | "causes"
+  | "interactsWith"
+  | "metabolizedBy"
+  | "indicatedFor"
+  | "antagonizes";
+
+export interface GraphEdge {
+  id: string;
+  source: string;
+  target: string;
+  type: GraphEdgeType;
+  label: string;
+  description?: string;
+}
+
+export interface KnowledgeGraphData {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+}
+
 export interface AppState {
   learningProgress: LearningProgress[];
   quizHistory: QuizHistory[];

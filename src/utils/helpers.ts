@@ -1,4 +1,4 @@
-import { QuizQuestion } from "@/types";
+import { QuizQuestion, KnowledgeGraphData } from "@/types";
 
 export function shuffleArray<T>(array: T[]): T[] {
   const result = [...array];
@@ -39,4 +39,33 @@ export function formatDate(dateString: string): string {
 
 export function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
+export function findRelatedNodesAndEdges(
+  startNodeId: string,
+  data: KnowledgeGraphData,
+  maxDepth: number = 2
+): { nodes: Set<string>; edges: Set<string> } {
+  const visitedNodes = new Set<string>();
+  const visitedEdges = new Set<string>();
+  const queue: { id: string; depth: number }[] = [{ id: startNodeId, depth: 0 }];
+  visitedNodes.add(startNodeId);
+
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    if (current.depth >= maxDepth) continue;
+
+    for (const edge of data.edges) {
+      if (edge.source === current.id || edge.target === current.id) {
+        visitedEdges.add(edge.id);
+        const otherId = edge.source === current.id ? edge.target : edge.source;
+        if (!visitedNodes.has(otherId)) {
+          visitedNodes.add(otherId);
+          queue.push({ id: otherId, depth: current.depth + 1 });
+        }
+      }
+    }
+  }
+
+  return { nodes: visitedNodes, edges: visitedEdges };
 }

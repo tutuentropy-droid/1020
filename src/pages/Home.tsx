@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Pill, BookOpen, FileQuestion, TrendingUp, ArrowRight, GraduationCap, Target, Award, AlertTriangle, Library, BookX, Zap } from "lucide-react";
+import { Pill, BookOpen, FileQuestion, TrendingUp, ArrowRight, GraduationCap, Target, Award, AlertTriangle, Library, BookX, Zap, Network } from "lucide-react";
 import { useStore } from "@/store/useStore";
 
 const featureCards = [
@@ -10,6 +10,14 @@ const featureCards = [
     link: "/drugs",
     gradient: "from-blue-500 to-indigo-600",
     bgLight: "bg-blue-50",
+  },
+  {
+    title: "药理知识图谱",
+    description: "可视化探索药物、靶点、疾病、副作用之间的关联网络，辅助理解药物作用机制",
+    icon: Network,
+    link: "/knowledge-graph",
+    gradient: "from-indigo-500 to-purple-600",
+    bgLight: "bg-indigo-50",
   },
   {
     title: "相互作用查询",

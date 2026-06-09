@@ -11,6 +11,7 @@ import QuizActive from "@/pages/QuizActive";
 import QuizResult from "@/pages/QuizResult";
 import Progress from "@/pages/Progress";
 import WrongBook from "@/pages/WrongBook";
+import KnowledgeGraphPage from "@/pages/KnowledgeGraph";
 import Layout from "@/components/Layout/Layout";
 
 export default function App() {
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="/quiz/result" element={<QuizResult />} />
           <Route path="/wrong-book" element={<WrongBook />} />
           <Route path="/progress" element={<Progress />} />
+          <Route path="/knowledge-graph" element={<KnowledgeGraphPage />} />
         </Routes>
       </Layout>
     </Router>
