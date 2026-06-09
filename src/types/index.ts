@@ -282,3 +282,80 @@ export type CalculatorType =
   | "body-surface-area"
   | "dose-calculation"
   | "tdm-simulation";
+
+export type ADRSeverity = "mild" | "moderate" | "severe" | "death";
+
+export type CausalityAssessment = "definite" | "probable" | "possible" | "unlikely" | "conditional" | "unassessable";
+
+export interface ADROption {
+  isADR: boolean;
+  suspectedDrugs: string[];
+  severity: ADRSeverity;
+  causality: CausalityAssessment;
+  summary: string;
+  naranjoScore?: number;
+}
+
+export interface ADRCase {
+  id: string;
+  title: string;
+  patientInfo: {
+    age: number;
+    gender: "male" | "female";
+    weight?: number;
+    allergies?: string[];
+    medicalHistory?: string[];
+  };
+  caseDescription: string;
+  symptoms: string[];
+  medicationsTaken: {
+    name: string;
+    dose: string;
+    frequency: string;
+    duration: string;
+    indication: string;
+  }[];
+  correctAnswer: ADROption;
+  explanation: {
+    isADRReason: string;
+    suspectedDrugsReason: string;
+    severityReason: string;
+    causalityReason: string;
+    summaryExample: string;
+  };
+  learningPoints: string[];
+}
+
+export interface ADRReportForm {
+  reportId: string;
+  reportDate: string;
+  reporter: {
+    name: string;
+    profession: string;
+    institution: string;
+    contact: string;
+  };
+  patient: {
+    initials: string;
+    age: number;
+    gender: "male" | "female";
+    weight?: number;
+    height?: number;
+  };
+  adverseReaction: {
+    description: string;
+    onsetDate: string;
+    severity: ADRSeverity;
+    outcome: string;
+  };
+  suspectedDrugs: {
+    name: string;
+    dose: string;
+    route: string;
+    startDate: string;
+    endDate: string;
+    indication: string;
+  }[];
+  causality: CausalityAssessment;
+  narrative: string;
+}

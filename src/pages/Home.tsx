@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Pill, BookOpen, FileQuestion, TrendingUp, ArrowRight, GraduationCap, Target, Award, AlertTriangle, Library, BookX, Zap, Network, Calculator } from "lucide-react";
+import { Pill, BookOpen, FileQuestion, TrendingUp, ArrowRight, GraduationCap, Target, Award, AlertTriangle, Library, BookX, Zap, Network, Calculator, ShieldAlert } from "lucide-react";
 import { useStore } from "@/store/useStore";
 
 const featureCards = [
@@ -34,6 +34,14 @@ const featureCards = [
     link: "/calculators",
     gradient: "from-sky-500 to-blue-600",
     bgLight: "bg-sky-50",
+  },
+  {
+    title: "ADR上报模拟",
+    description: "系统随机生成病例，练习ADR识别、严重程度分级、因果关系评价及规范上报流程",
+    icon: ShieldAlert,
+    link: "/adr-simulation",
+    gradient: "from-rose-500 to-red-600",
+    bgLight: "bg-rose-50",
   },
   {
     title: "典型案例库",
