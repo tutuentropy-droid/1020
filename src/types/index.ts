@@ -1,3 +1,22 @@
+export type TimelineEventType =
+  | "discovery"
+  | "clinical-trial"
+  | "approval"
+  | "safety-event"
+  | "guideline"
+  | "milestone";
+
+export interface TimelineEvent {
+  id: string;
+  year: number;
+  type: TimelineEventType;
+  title: string;
+  summary: string;
+  details?: string;
+  imageUrl?: string;
+  references?: string[];
+}
+
 export interface Drug {
   id: string;
   name: string;
@@ -8,6 +27,7 @@ export interface Drug {
   contraindications: string[];
   dosage: string;
   description: string;
+  history?: TimelineEvent[];
 }
 
 export type InteractionSeverity = "contraindicated" | "severe" | "moderate" | "mild";

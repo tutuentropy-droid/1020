@@ -1,4 +1,4 @@
-import { Pill, ChevronRight, Stethoscope } from "lucide-react";
+import { Pill, ChevronRight, Stethoscope, History } from "lucide-react";
 import { Drug } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -75,9 +75,17 @@ export default function DrugCard({ drug, onClick }: DrugCardProps) {
       </div>
 
       <div className="mt-4 pt-4 border-t border-gray-50">
-        <p className="text-xs text-gray-400 line-clamp-2">
+        <p className="text-xs text-gray-400 line-clamp-2 mb-3">
           {drug.description}
         </p>
+        {drug.history && drug.history.length > 0 && (
+          <div className="flex items-center gap-1.5 text-xs text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg inline-flex">
+            <History className="w-3.5 h-3.5" />
+            <span className="font-medium">历史沿革</span>
+            <span className="text-indigo-400">·</span>
+            <span className="text-indigo-500">{drug.history.length}个事件</span>
+          </div>
+        )}
       </div>
     </div>
   );

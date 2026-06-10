@@ -7,9 +7,11 @@ import {
   Ban,
   Pill,
   Info,
+  History,
 } from "lucide-react";
 import { drugs } from "@/data/drugs";
 import { cn } from "@/lib/utils";
+import Timeline from "@/components/Timeline";
 
 const categoryColors: Record<string, string> = {
   抗生素: "bg-blue-50 text-blue-700 border-blue-200",
@@ -196,6 +198,29 @@ export default function DrugDetail() {
           </div>
         ))}
       </div>
+
+      {drug.history && drug.history.length > 0 && (
+        <div className="animate-slide-up" style={{ animationDelay: "360ms" }}>
+          <div className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 rounded-3xl border border-indigo-100 p-6 md:p-8 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-200">
+                  <History className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">历史沿革</h3>
+                  <p className="text-sm text-gray-500">探索药物发展的重要里程碑</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-gray-500 bg-white/80 backdrop-blur-sm px-3 py-1.5 rounded-full border border-gray-200">
+                <span className="inline-block w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
+                点击时间节点查看详细说明
+              </div>
+            </div>
+            <Timeline events={drug.history} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
