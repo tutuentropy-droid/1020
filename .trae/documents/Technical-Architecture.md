@@ -35,6 +35,7 @@ graph TD
 | `/quiz/active` | 测验答题界面 |
 | `/quiz/result` | 测验结果页面 |
 | `/progress` | 个人学习进度追踪页 |
+| `/drug-development` | 药物研发之路 - 游戏主页 |
 
 ## 4. 数据模型
 
@@ -88,6 +89,61 @@ erDiagram
         string[] questionIds
         int[] userAnswers
     }
+    
+    GAME_STAGE {
+        string id PK
+        string name
+        string description
+        int order
+        int baseSuccessRate
+        int baseCost
+        int baseTime
+    }
+    
+    GAME_DECISION {
+        string id PK
+        string stageId FK
+        string title
+        string description
+        string[] optionIds
+    }
+    
+    GAME_DECISION_OPTION {
+        string id PK
+        string label
+        string description
+        int costModifier
+        int timeModifier
+        int successRateModifier
+        string knowledgePopupId
+    }
+    
+    KNOWLEDGE_POPUP {
+        string id PK
+        string title
+        string content
+        string category
+    }
+    
+    GAME_ACHIEVEMENT {
+        string id PK
+        string name
+        string description
+        string icon
+        string unlockCondition
+        string rarity
+    }
+    
+    GAME_HISTORY {
+        string id PK
+        string date
+        string result
+        int finalFunds
+        int totalTime
+        int finalSuccessRate
+        string[] unlockedAchievementIds
+        string[] decisionsMade
+    }
 ```
 
 ### 4.2 Mock数据结构
@@ -102,6 +158,14 @@ erDiagram
 题库数据（Quiz Questions）：
 - 包含至少50道单选题，覆盖各章节内容，附带答案和详细解析
 
+游戏数据（Drug Development Game）：
+- **游戏阶段（Game Stages）**：4个主要阶段（靶点发现、先导化合物优化、临床试验、上市审批），每个阶段包含基础成功率、基础成本、基础时间
+- **决策点（Game Decisions）**：每个阶段包含2-3个关键决策点，每个决策点有3-4个选项
+- **决策选项（Decision Options）**：每个选项包含成本、时间、成功率的修正值，以及关联的知识弹窗
+- **知识弹窗（Knowledge Popups）**：每个阶段至少2个药理知识弹窗，包含详细解释
+- **成就系统（Achievements）**：至少8个成就，包含普通、稀有、史诗三个稀有度等级
+- **游戏历史（Game History）**：记录每次游戏的结果、获得成就、关键决策等
+
 ## 5. 项目文件结构
 
 ```
@@ -111,7 +175,13 @@ src/
 │   ├── DrugCard.tsx     # 药物卡片
 │   ├── ChapterCard.tsx  # 章节卡片
 │   ├── ProgressBar.tsx  # 进度条
-│   └── QuestionCard.tsx # 题目卡片
+│   ├── QuestionCard.tsx # 题目卡片
+│   └── DrugDevGame/   # 游戏专用组件
+│       ├── GameStageCard.tsx
+│       ├── DecisionModal.tsx
+│       ├── KnowledgePopup.tsx
+│       ├── AchievementBadge.tsx
+│       └── GameResultModal.tsx
 ├── pages/               # 页面组件
 │   ├── Home.tsx
 │   ├── DrugList.tsx
@@ -121,11 +191,13 @@ src/
 │   ├── QuizHome.tsx
 │   ├── QuizActive.tsx
 │   ├── QuizResult.tsx
-│   └── Progress.tsx
+│   ├── Progress.tsx
+│   └── DrugDevelopmentGame.tsx  # 游戏主页
 ├── data/                # Mock数据
 │   ├── drugs.ts
 │   ├── chapters.ts
-│   └── questions.ts
+│   ├── questions.ts
+│   └── drugDevGame.ts  # 游戏数据
 ├── store/               # Zustand状态管理
 │   └── useStore.ts
 ├── types/               # TypeScript类型定义

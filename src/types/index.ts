@@ -636,3 +636,134 @@ export interface JournalArticle {
   studyType: string;
   sampleSize?: number;
 }
+
+export type GameStageId = "target-discovery" | "lead-optimization" | "clinical-trial" | "regulatory-approval";
+export type GameRarity = "common" | "rare" | "epic";
+export type GameResult = "success" | "failed" | "in-progress";
+
+export interface GameStage {
+  id: GameStageId;
+  name: string;
+  description: string;
+  order: number;
+  baseSuccessRate: number;
+  baseCost: number;
+  baseTime: number;
+  icon: string;
+  color: string;
+}
+
+export interface GameDecisionOption {
+  id: string;
+  label: string;
+  description: string;
+  costModifier: number;
+  timeModifier: number;
+  successRateModifier: number;
+  knowledgePopupId: string;
+}
+
+export interface GameDecision {
+  id: string;
+  stageId: GameStageId;
+  title: string;
+  description: string;
+  options: GameDecisionOption[];
+}
+
+export interface GameKnowledgePopup {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+}
+
+export interface GameAchievement {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  unlockCondition: string;
+  rarity: GameRarity;
+  unlocked: boolean;
+  unlockedAt?: string;
+}
+
+export interface GameHistory {
+  id: string;
+  date: string;
+  result: GameResult;
+  finalFunds: number;
+  totalTime: number;
+  finalSuccessRate: number;
+  unlockedAchievementIds: string[];
+  decisionsMade: string[];
+  drugName: string;
+  drugCategory: string;
+}
+
+export interface GameState {
+  currentStage: GameStageId | null;
+  currentDecisionIndex: number;
+  funds: number;
+  totalTime: number;
+  currentSuccessRate: number;
+  decisionsMade: string[];
+  unlockedAchievements: string[];
+  gameActive: boolean;
+  drugName: string;
+  drugCategory: string;
+}
+
+export interface AppState {
+  learningProgress: LearningProgress[];
+  quizHistory: QuizHistory[];
+  currentQuiz: {
+    questions: QuizQuestion[];
+    currentIndex: number;
+    userAnswers: number[];
+  } | null;
+  wrongQuestions: WrongQuestion[];
+  questionStats: QuestionStats[];
+  notes: Note[];
+  journalComments: JournalComment[];
+  currentUserName: string;
+  currentUserId: string;
+  gameState: GameState;
+  gameHistory: GameHistory[];
+  gameAchievements: GameAchievement[];
+  viewedKnowledgePopups: string[];
+}
+
+export interface AppActions {
+  updateChapterProgress: (chapterId: string, status: LearningStatus, score?: number) => void;
+  startQuiz: (questions: QuizQuestion[]) => void;
+  answerCurrentQuestion: (answerIndex: number) => void;
+  nextQuestion: () => void;
+  finishQuiz: () => QuizHistory;
+  clearCurrentQuiz: () => void;
+  addWrongQuestion: (questionId: string, userAnswer: number) => void;
+  removeWrongQuestion: (questionId: string) => void;
+  markWrongQuestionMastered: (questionId: string) => void;
+  updateQuestionStats: (questionId: string, isCorrect: boolean) => void;
+  getQuestionAccuracy: (questionId: string) => number;
+  getSmartQuizQuestions: (config?: Partial<SmartQuizConfig>, category?: string) => QuizQuestion[];
+  clearWrongQuestions: () => void;
+  addNote: (note: Omit<Note, "id" | "createdAt" | "updatedAt">) => Note;
+  updateNote: (id: string, updates: Partial<Note>) => void;
+  deleteNote: (id: string) => void;
+  getNote: (id: string) => Note | undefined;
+  getArticleComments: (articleId: string) => JournalComment[];
+  addJournalComment: (articleId: string, comment: Omit<JournalComment, "id" | "articleId" | "authorId" | "authorName" | "createdAt" | "likes" | "likedByUser" | "replies">) => JournalComment;
+  likeJournalComment: (commentId: string) => void;
+  replyToJournalComment: (commentId: string, content: string) => CommentReply;
+  likeCommentReply: (commentId: string, replyId: string) => void;
+  startGame: (drugName: string, drugCategory: string) => void;
+  makeDecision: (optionId: string, costModifier: number, timeModifier: number, successRateModifier: number) => void;
+  advanceStage: () => void;
+  finishGame: (result: GameResult) => void;
+  resetGame: () => void;
+  unlockAchievement: (achievementId: string) => void;
+  markKnowledgeViewed: (knowledgeId: string) => void;
+  checkStageSuccess: () => boolean;
+}

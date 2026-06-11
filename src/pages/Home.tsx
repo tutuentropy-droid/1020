@@ -1,8 +1,16 @@
 import { Link } from "react-router-dom";
-import { Pill, BookOpen, FileQuestion, TrendingUp, ArrowRight, GraduationCap, Target, Award, AlertTriangle, Library, BookX, Zap, Network, Calculator, ShieldAlert, GitCompare, BookMarked } from "lucide-react";
+import { Pill, BookOpen, FileQuestion, TrendingUp, ArrowRight, GraduationCap, Target, Award, AlertTriangle, Library, BookX, Zap, Network, Calculator, ShieldAlert, GitCompare, BookMarked, FlaskConical } from "lucide-react";
 import { useStore } from "@/store/useStore";
 
 const featureCards = [
+  {
+    title: "药物研发之路",
+    description: "回合制模拟游戏，体验从靶点发现、先导化合物优化、临床试验到上市审批的完整药物研发过程",
+    icon: FlaskConical,
+    link: "/drug-development",
+    gradient: "from-purple-500 to-pink-600",
+    bgLight: "bg-purple-50",
+  },
   {
     title: "药物知识库",
     description: "系统学习各类常用药物的适应症、作用机制、不良反应等核心知识",

@@ -13,10 +13,15 @@ import {
   Note,
   JournalComment,
   CommentReply,
+  GameState,
+  GameResult,
+  GameHistory,
+  GameStageId,
 } from "@/types";
 import { generateId, shuffleArray } from "@/utils/helpers";
 import { quizQuestions } from "@/data/questions";
 import { initialComments } from "@/data/journalClub";
+import { gameAchievements, gameStages, getDecisionsByStage } from "@/data/drugDevGame";
 
 type Store = AppState & AppActions;
 
@@ -24,6 +29,21 @@ const DEFAULT_SMART_CONFIG: SmartQuizConfig = {
   wrongQuestionRatio: 0.7,
   totalQuestions: 10,
 };
+
+const INITIAL_GAME_STATE: GameState = {
+  currentStage: null,
+  currentDecisionIndex: 0,
+  funds: 1000,
+  totalTime: 0,
+  currentSuccessRate: 50,
+  decisionsMade: [],
+  unlockedAchievements: [],
+  gameActive: false,
+  drugName: "",
+  drugCategory: "",
+};
+
+const INITIAL_KNOWLEDGE_VIEWED: string[] = [];
 
 export const useStore = create<Store>()(
   persist(
@@ -37,6 +57,10 @@ export const useStore = create<Store>()(
       journalComments: initialComments,
       currentUserName: "访客用户",
       currentUserId: "current-user",
+      gameState: INITIAL_GAME_STATE,
+      gameHistory: [],
+      gameAchievements: gameAchievements.map((a) => ({ ...a })),
+      viewedKnowledgePopups: INITIAL_KNOWLEDGE_VIEWED,
 
       updateChapterProgress: (
         chapterId: string,
@@ -437,6 +461,158 @@ export const useStore = create<Store>()(
             return c;
           }),
         }));
+      },
+
+      startGame: (drugName: string, drugCategory: string) => {
+        set({
+          gameState: {
+            ...INITIAL_GAME_STATE,
+            currentStage: "target-discovery",
+            gameActive: true,
+            drugName,
+            drugCategory,
+            funds: 1000,
+            currentSuccessRate: gameStages[0].baseSuccessRate,
+          },
+        });
+      },
+
+      makeDecision: (optionId: string, costModifier: number, timeModifier: number, successRateModifier: number) => {
+        set((state) => {
+          if (!state.gameState.gameActive || !state.gameState.currentStage) return state;
+
+          const newFunds = Math.max(0, state.gameState.funds - costModifier);
+          const newTime = state.gameState.totalTime + timeModifier;
+          const newSuccessRate = Math.max(0, Math.min(100, state.gameState.currentSuccessRate + successRateModifier));
+
+          return {
+            gameState: {
+              ...state.gameState,
+              funds: newFunds,
+              totalTime: newTime,
+              currentSuccessRate: newSuccessRate,
+              decisionsMade: [...state.gameState.decisionsMade, optionId],
+              currentDecisionIndex: state.gameState.currentDecisionIndex + 1,
+            },
+          };
+        });
+      },
+
+      advanceStage: () => {
+        set((state) => {
+          if (!state.gameState.gameActive || !state.gameState.currentStage) return state;
+
+          const currentStageIndex = gameStages.findIndex((s) => s.id === state.gameState.currentStage);
+          if (currentStageIndex >= gameStages.length - 1) {
+            return state;
+          }
+
+          const nextStage = gameStages[currentStageIndex + 1];
+          return {
+            gameState: {
+              ...state.gameState,
+              currentStage: nextStage.id,
+              currentDecisionIndex: 0,
+              currentSuccessRate: Math.max(0, Math.min(100, nextStage.baseSuccessRate + (state.gameState.currentSuccessRate - 50) * 0.3)),
+            },
+          };
+        });
+      },
+
+      finishGame: (result: GameResult) => {
+        const state = get();
+        if (!state.gameState.gameActive) return;
+
+        const newUnlocked: string[] = [];
+        const now = new Date().toISOString();
+        const history: GameHistory = {
+          id: generateId(),
+          date: now,
+          result,
+          finalFunds: state.gameState.funds,
+          totalTime: state.gameState.totalTime,
+          finalSuccessRate: state.gameState.currentSuccessRate,
+          unlockedAchievementIds: [],
+          decisionsMade: state.gameState.decisionsMade,
+          drugName: state.gameState.drugName,
+          drugCategory: state.gameState.drugCategory,
+        };
+
+        const successCount = state.gameHistory.filter((h) => h.result === "success").length;
+        const failCount = state.gameHistory.filter((h) => h.result === "failed").length;
+        const viewedKnowledge = state.viewedKnowledgePopups?.length || 0;
+
+        const checkAchievement = (id: string, condition: boolean) => {
+          const achievement = state.gameAchievements.find((a) => a.id === id);
+          if (achievement && !achievement.unlocked && condition) {
+            newUnlocked.push(id);
+          }
+        };
+
+        checkAchievement("ach-first-game", true);
+        checkAchievement("ach-first-success", result === "success");
+        checkAchievement("ach-five-success", result === "success" && successCount + 1 >= 5);
+        checkAchievement("ach-ten-success", result === "success" && successCount + 1 >= 10);
+        checkAchievement("ach-low-cost", result === "success" && state.gameState.funds < 500);
+        checkAchievement("ach-high-speed", result === "success" && state.gameState.totalTime < 100);
+        checkAchievement("ach-perfect", result === "success" && state.gameState.currentSuccessRate >= 90);
+        checkAchievement("ach-risk-taker", result === "success" && state.gameState.currentSuccessRate < 30);
+        checkAchievement("ach-knowledge-seeker", viewedKnowledge >= 20);
+        checkAchievement("ach-all-knowledge", viewedKnowledge >= 28);
+        checkAchievement("ach-never-give-up", result === "success" && failCount >= 5);
+        checkAchievement("ach-all-stages", state.gameState.decisionsMade.length >= 10);
+
+        history.unlockedAchievementIds = newUnlocked;
+
+        set((state) => ({
+          gameHistory: [history, ...state.gameHistory],
+          gameState: {
+            ...state.gameState,
+            gameActive: false,
+            unlockedAchievements: [...state.gameState.unlockedAchievements, ...newUnlocked],
+          },
+          gameAchievements: state.gameAchievements.map((a) =>
+            newUnlocked.includes(a.id) ? { ...a, unlocked: true, unlockedAt: now } : a
+          ),
+        }));
+      },
+
+      resetGame: () => {
+        set({
+          gameState: INITIAL_GAME_STATE,
+        });
+      },
+
+      unlockAchievement: (achievementId: string) => {
+        set((state) => {
+          const achievement = state.gameAchievements.find((a) => a.id === achievementId);
+          if (!achievement || achievement.unlocked) return state;
+
+          return {
+            gameAchievements: state.gameAchievements.map((a) =>
+              a.id === achievementId ? { ...a, unlocked: true, unlockedAt: new Date().toISOString() } : a
+            ),
+          };
+        });
+      },
+
+      markKnowledgeViewed: (knowledgeId: string) => {
+        set((state) => {
+          const viewed = state.viewedKnowledgePopups || [];
+          if (viewed.includes(knowledgeId)) return state;
+          return {
+            viewedKnowledgePopups: [...viewed, knowledgeId],
+          };
+        });
+      },
+
+      checkStageSuccess: (): boolean => {
+        const state = get();
+        if (!state.gameState.currentStage) return false;
+        const stage = gameStages.find((s) => s.id === state.gameState.currentStage);
+        if (!stage) return false;
+        const successChance = state.gameState.currentSuccessRate;
+        return Math.random() * 100 < successChance;
       },
     }),
     {

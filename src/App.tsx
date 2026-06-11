@@ -20,6 +20,7 @@ import TDMExercise from "@/pages/TDMExercise";
 import Notes from "@/pages/Notes";
 import MindMapPage from "@/pages/MindMapPage";
 import JournalClub from "@/pages/JournalClub";
+import DrugDevelopmentGame from "@/pages/DrugDevelopmentGame";
 import Layout from "@/components/Layout/Layout";
 
 export default function App() {
@@ -49,6 +50,7 @@ export default function App() {
           <Route path="/mindmap" element={<MindMapPage />} />
           <Route path="/mindmap/:sourceType/:sourceId" element={<MindMapPage />} />
           <Route path="/journal-club" element={<JournalClub />} />
+          <Route path="/drug-development" element={<DrugDevelopmentGame />} />
         </Routes>
       </Layout>
     </Router>
