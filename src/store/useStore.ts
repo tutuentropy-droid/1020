@@ -11,9 +11,12 @@ import {
   QuestionStats,
   SmartQuizConfig,
   Note,
+  JournalComment,
+  CommentReply,
 } from "@/types";
 import { generateId, shuffleArray } from "@/utils/helpers";
 import { quizQuestions } from "@/data/questions";
+import { initialComments } from "@/data/journalClub";
 
 type Store = AppState & AppActions;
 
@@ -31,6 +34,9 @@ export const useStore = create<Store>()(
       wrongQuestions: [],
       questionStats: [],
       notes: [],
+      journalComments: initialComments,
+      currentUserName: "访客用户",
+      currentUserId: "current-user",
 
       updateChapterProgress: (
         chapterId: string,
@@ -324,6 +330,113 @@ export const useStore = create<Store>()(
 
       getNote: (id: string): Note | undefined => {
         return get().notes.find((note) => note.id === id);
+      },
+
+      getArticleComments: (articleId: string): JournalComment[] => {
+        return get()
+          .journalComments.filter((c) => c.articleId === articleId)
+          .sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+      },
+
+      addJournalComment: (
+        articleId: string,
+        comment: Omit<
+          JournalComment,
+          | "id"
+          | "articleId"
+          | "authorId"
+          | "authorName"
+          | "createdAt"
+          | "likes"
+          | "likedByUser"
+          | "replies"
+        >
+      ): JournalComment => {
+        const state = get();
+        const newComment: JournalComment = {
+          ...comment,
+          id: generateId(),
+          articleId,
+          authorId: state.currentUserId,
+          authorName: state.currentUserName,
+          createdAt: new Date().toISOString(),
+          likes: 0,
+          likedByUser: false,
+          replies: [],
+        };
+        set((state) => ({
+          journalComments: [newComment, ...state.journalComments],
+        }));
+        return newComment;
+      },
+
+      likeJournalComment: (commentId: string) => {
+        set((state) => ({
+          journalComments: state.journalComments.map((c) => {
+            if (c.id === commentId) {
+              return {
+                ...c,
+                likes: c.likedByUser ? c.likes - 1 : c.likes + 1,
+                likedByUser: !c.likedByUser,
+              };
+            }
+            return c;
+          }),
+        }));
+      },
+
+      replyToJournalComment: (
+        commentId: string,
+        content: string
+      ): CommentReply => {
+        const state = get();
+        const newReply: CommentReply = {
+          id: generateId(),
+          authorId: state.currentUserId,
+          authorName: state.currentUserName,
+          content,
+          createdAt: new Date().toISOString(),
+          likes: 0,
+          likedByUser: false,
+        };
+        set((state) => ({
+          journalComments: state.journalComments.map((c) => {
+            if (c.id === commentId) {
+              return {
+                ...c,
+                replies: [...c.replies, newReply],
+              };
+            }
+            return c;
+          }),
+        }));
+        return newReply;
+      },
+
+      likeCommentReply: (commentId: string, replyId: string) => {
+        set((state) => ({
+          journalComments: state.journalComments.map((c) => {
+            if (c.id === commentId) {
+              return {
+                ...c,
+                replies: c.replies.map((r) => {
+                  if (r.id === replyId) {
+                    return {
+                      ...r,
+                      likes: r.likedByUser ? r.likes - 1 : r.likes + 1,
+                      likedByUser: !r.likedByUser,
+                    };
+                  }
+                  return r;
+                }),
+              };
+            }
+            return c;
+          }),
+        }));
       },
     }),
     {

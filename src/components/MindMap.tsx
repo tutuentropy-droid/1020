@@ -23,35 +23,40 @@ interface EChartTreeNode {
   type: MindMapNodeType;
   description?: string;
   note?: string;
+  symbolSize: number;
   itemStyle: {
     color: string;
     borderColor: string;
     borderWidth: number;
   };
   label: {
-    backgroundColor: string;
+    backgroundColor?: string;
     color: string;
     fontSize: number;
     fontWeight: "normal" | "bold" | "bolder" | "lighter" | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900;
-    padding: number[];
-    borderRadius: number;
-    width?: number;
-    overflow?: "none" | "truncate" | "break" | "breakAll";
+    padding?: number[];
+    borderRadius?: number;
   };
   children?: EChartTreeNode[];
 }
 
-const nodeToEChartTree = (node: MindMapNode, depth: number = 0): EChartTreeNode => {
+const nodeToEChartTree = (
+  node: MindMapNode,
+  depth: number = 0,
+  selectedId?: string | null
+): EChartTreeNode => {
   const config = mindMapNodeTypeConfig[node.type];
   const isRoot = node.type === "root";
+  const isSelected = selectedId === node.id;
   const fontSize = isRoot ? 16 : depth === 1 ? 14 : 12;
   const fontWeight = (isRoot ? "bold" : depth === 1 ? 600 : "normal") as EChartTreeNode["label"]["fontWeight"];
 
   let displayName = node.name;
-  if (displayName.length > 15) {
-    displayName = displayName.substring(0, 15) + "...";
+  if (displayName.length > 20) {
+    displayName = displayName.substring(0, 20) + "...";
   }
 
+  const baseSymbolSize = isRoot ? 22 : depth === 1 ? 18 : 14;
   const echartNode: EChartTreeNode = {
     id: node.id,
     name: displayName,
@@ -59,25 +64,26 @@ const nodeToEChartTree = (node: MindMapNode, depth: number = 0): EChartTreeNode 
     type: node.type,
     description: node.description,
     note: node.note,
+    symbolSize: isSelected ? baseSymbolSize + 8 : baseSymbolSize,
     itemStyle: {
       color: config.color,
-      borderColor: "#ffffff",
-      borderWidth: 2,
+      borderColor: isSelected ? "#1E40AF" : "#ffffff",
+      borderWidth: isSelected ? 4 : 2,
     },
     label: {
       backgroundColor: config.color,
       color: "#ffffff",
       fontSize,
       fontWeight,
-      padding: [8, 12],
-      borderRadius: 8,
-      width: 150,
-      overflow: "truncate",
+      padding: [6, 10],
+      borderRadius: 6,
     },
   };
 
   if (node.children && node.children.length > 0) {
-    echartNode.children = node.children.map((child) => nodeToEChartTree(child, depth + 1));
+    echartNode.children = node.children.map((child) =>
+      nodeToEChartTree(child, depth + 1, selectedId)
+    );
   }
 
   return echartNode;
@@ -135,6 +141,9 @@ const deleteNodeFromTree = (root: MindMapNode, nodeId: string): MindMapNode => {
 const MindMap = forwardRef<MindMapRef, MindMapProps>(({ data, onDataChange }, ref) => {
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstance = useRef<echarts.ECharts | null>(null);
+  const mindMapDataRef = useRef<MindMapData>(data);
+  const handleNodeClickRef = useRef<((nodeId: string) => void) | null>(null);
+
   const [selectedNode, setSelectedNode] = useState<MindMapNode | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
@@ -142,8 +151,13 @@ const MindMap = forwardRef<MindMapRef, MindMapProps>(({ data, onDataChange }, re
   const [mindMapData, setMindMapData] = useState<MindMapData>(data);
 
   useEffect(() => {
+    mindMapDataRef.current = data;
     setMindMapData(data);
   }, [data]);
+
+  useEffect(() => {
+    mindMapDataRef.current = mindMapData;
+  }, [mindMapData]);
 
   const findNodeById = (root: MindMapNode, nodeId: string): MindMapNode | null => {
     if (root.id === nodeId) return root;
@@ -156,18 +170,20 @@ const MindMap = forwardRef<MindMapRef, MindMapProps>(({ data, onDataChange }, re
     return null;
   };
 
-  const handleNodeClick = useCallback(
-    (nodeId: string) => {
-      const node = findNodeById(mindMapData.rootNode, nodeId);
-      if (node) {
-        setSelectedNode(node);
-        setEditName(node.name);
-        setEditNote(node.note || "");
-        setIsEditing(false);
-      }
-    },
-    [mindMapData]
-  );
+  const handleNodeClickInternal = (nodeId: string) => {
+    const currentData = mindMapDataRef.current;
+    const node = findNodeById(currentData.rootNode, nodeId);
+    if (node) {
+      setSelectedNode(node);
+      setEditName(node.name);
+      setEditNote(node.note || "");
+      setIsEditing(false);
+    }
+  };
+
+  useEffect(() => {
+    handleNodeClickRef.current = handleNodeClickInternal;
+  });
 
   const handleUpdateNode = useCallback(() => {
     if (!selectedNode) return;
@@ -224,8 +240,13 @@ const MindMap = forwardRef<MindMapRef, MindMapProps>(({ data, onDataChange }, re
     setIsEditing(false);
   }, [selectedNode, mindMapData, onDataChange]);
 
+  const selectedNodeIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    selectedNodeIdRef.current = selectedNode?.id ?? null;
+  }, [selectedNode]);
+
   const buildOption = useCallback((): EChartsOption => {
-    const treeData = nodeToEChartTree(mindMapData.rootNode);
+    const treeData = nodeToEChartTree(mindMapData.rootNode, 0, selectedNode?.id ?? null);
 
     return {
       backgroundColor: "#FAFBFC",
@@ -262,12 +283,11 @@ const MindMap = forwardRef<MindMapRef, MindMapProps>(({ data, onDataChange }, re
           id: 0,
           name: "mindmap",
           data: [treeData],
-          top: "5%",
-          left: "15%",
-          bottom: "5%",
-          right: "15%",
-          symbolSize: 12,
-          symbol: "circle",
+          top: "2%",
+          left: "8%",
+          bottom: "2%",
+          right: "8%",
+          symbol: "emptyCircle",
           orient: "LR",
           expandAndCollapse: true,
           initialTreeDepth: 2,
@@ -276,6 +296,7 @@ const MindMap = forwardRef<MindMapRef, MindMapProps>(({ data, onDataChange }, re
           roam: true,
           emphasis: {
             focus: "descendant",
+            scale: true,
           },
           lineStyle: {
             color: "#CBD5E1",
@@ -287,52 +308,101 @@ const MindMap = forwardRef<MindMapRef, MindMapProps>(({ data, onDataChange }, re
             verticalAlign: "middle",
             align: "right",
             fontFamily: "system-ui, -apple-system, sans-serif",
+            distance: 8,
           },
           leaves: {
             label: {
               position: "right",
               verticalAlign: "middle",
               align: "left",
+              distance: 8,
             },
           },
         },
       ],
     };
-  }, [mindMapData]);
+  }, [mindMapData, selectedNode]);
 
   useEffect(() => {
     if (!chartRef.current) return;
 
-    chartInstance.current = echarts.init(chartRef.current);
-    chartInstance.current.setOption(buildOption());
+    const instance = echarts.init(chartRef.current);
+    chartInstance.current = instance;
+    instance.setOption(buildOption());
 
-    chartInstance.current.on("click", (params: unknown) => {
-      const p = params as {
-        dataType: string;
-        data: { id: string };
-      };
-      if (p.dataType === "treeNode") {
-        handleNodeClick(p.data.id);
+    const handleClick = (params: unknown) => {
+      const p = params as Record<string, unknown>;
+      const data = p.data as Record<string, unknown> | null | undefined;
+      let nodeId: string | undefined;
+
+      if (data?.id && typeof data.id === "string") {
+        nodeId = data.id;
       }
-    });
+
+      if (!nodeId && p.name) {
+        const currentData = mindMapDataRef.current;
+        const allNodes = flattenMindMapNodes(currentData.rootNode);
+        const matchedNode = allNodes.find((n) => {
+          const display =
+            n.name.length > 20 ? n.name.substring(0, 20) + "..." : n.name;
+          return display === p.name || n.name === p.name;
+        });
+        if (matchedNode) {
+          nodeId = matchedNode.id;
+        }
+      }
+
+      if (nodeId && handleNodeClickRef.current) {
+        handleNodeClickRef.current(nodeId);
+      }
+    };
+
+    instance.on("click", handleClick);
+
+    const zr = instance.getZr();
+    if (zr && zr.on) {
+      zr.on("click", (e: unknown) => {
+        const event = e as { target?: { data?: { id?: string } } };
+        if (event?.target?.data?.id && handleNodeClickRef.current) {
+          handleNodeClickRef.current(event.target.data.id);
+        }
+      });
+    }
 
     const handleResize = () => {
-      chartInstance.current?.resize();
+      instance.resize();
     };
     window.addEventListener("resize", handleResize);
 
     return () => {
       window.removeEventListener("resize", handleResize);
-      chartInstance.current?.dispose();
-      chartInstance.current = null;
+      instance.off("click", handleClick);
+      instance.dispose();
+      if (chartInstance.current === instance) {
+        chartInstance.current = null;
+      }
     };
   }, []);
 
   useEffect(() => {
     if (chartInstance.current) {
-      chartInstance.current.setOption(buildOption());
+      chartInstance.current.setOption(buildOption(), true);
     }
   }, [buildOption]);
+
+  useEffect(() => {
+    const timers: number[] = [];
+    timers.push(
+      window.setTimeout(() => chartInstance.current?.resize(), 100)
+    );
+    timers.push(
+      window.setTimeout(() => chartInstance.current?.resize(), 300)
+    );
+    timers.push(
+      window.setTimeout(() => chartInstance.current?.resize(), 600)
+    );
+    return () => timers.forEach((t) => clearTimeout(t));
+  }, [mindMapData]);
 
   useImperativeHandle(ref, () => ({
     exportImage: (format: "png" | "pdf") => {
@@ -396,10 +466,14 @@ const MindMap = forwardRef<MindMapRef, MindMapProps>(({ data, onDataChange }, re
   };
 
   return (
-    <div className="flex h-full min-h-[700px] gap-4">
-      <div className="flex-1 relative">
-        <div ref={chartRef} className="w-full h-full min-h-[700px] rounded-2xl border border-gray-100 bg-white shadow-inner" />
-        <div className="absolute bottom-4 left-4 flex gap-2">
+    <div className="flex gap-4 w-full" style={{ minHeight: "800px" }}>
+      <div className="flex-1 relative flex flex-col min-w-0" style={{ minHeight: "800px" }}>
+        <div
+          ref={chartRef}
+          className="flex-1 w-full rounded-2xl border border-gray-100 bg-white shadow-inner"
+          style={{ minHeight: "800px", width: "100%" }}
+        />
+        <div className="absolute bottom-4 left-4 flex gap-2 z-10 pointer-events-none">
           <div className="bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2 text-sm text-gray-600 shadow-sm border border-gray-100">
             节点数: {stats.totalNodes} | 分类: {stats.categories} | 笔记: {stats.hasNotes}
           </div>

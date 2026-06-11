@@ -179,6 +179,9 @@ export interface AppState {
   wrongQuestions: WrongQuestion[];
   questionStats: QuestionStats[];
   notes: Note[];
+  journalComments: JournalComment[];
+  currentUserName: string;
+  currentUserId: string;
 }
 
 export interface AppActions {
@@ -199,6 +202,11 @@ export interface AppActions {
   updateNote: (id: string, updates: Partial<Note>) => void;
   deleteNote: (id: string) => void;
   getNote: (id: string) => Note | undefined;
+  getArticleComments: (articleId: string) => JournalComment[];
+  addJournalComment: (articleId: string, comment: Omit<JournalComment, "id" | "articleId" | "authorId" | "authorName" | "createdAt" | "likes" | "likedByUser" | "replies">) => JournalComment;
+  likeJournalComment: (commentId: string) => void;
+  replyToJournalComment: (commentId: string, content: string) => CommentReply;
+  likeCommentReply: (commentId: string, replyId: string) => void;
 }
 
 export type Gender = "male" | "female";
@@ -575,4 +583,56 @@ export interface MindMapExportOptions {
 export interface GenerateMindMapParams {
   sourceType: "drug" | "chapter";
   sourceId: string;
+}
+
+export type CommentTag = "critical-analysis" | "clinical-application" | "methodology" | "question" | "insight";
+
+export interface CommentReply {
+  id: string;
+  authorId: string;
+  authorName: string;
+  content: string;
+  createdAt: string;
+  likes: number;
+  likedByUser: boolean;
+}
+
+export interface JournalComment {
+  id: string;
+  articleId: string;
+  authorId: string;
+  authorName: string;
+  researchQuestion: string;
+  methodsConclusions: string;
+  clinicalSignificance: string;
+  myQuestions: string;
+  tags: CommentTag[];
+  createdAt: string;
+  likes: number;
+  likedByUser: boolean;
+  replies: CommentReply[];
+}
+
+export interface JournalArticle {
+  id: string;
+  title: string;
+  authors: string[];
+  journal: string;
+  publicationDate: string;
+  year: number;
+  volume?: string;
+  issue?: string;
+  pages?: string;
+  doi?: string;
+  pmid?: string;
+  abstract: string;
+  keywords: string[];
+  pdfUrl?: string;
+  category: "classic" | "cutting-edge";
+  weekNumber: number;
+  yearOfWeek: number;
+  summary?: string;
+  keyFindings: string[];
+  studyType: string;
+  sampleSize?: number;
 }
