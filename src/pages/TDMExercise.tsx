@@ -162,16 +162,90 @@ export default function TDMExercise() {
         nameTextStyle: { fontSize: 11 },
         axisLabel: { fontSize: 10 },
       },
-      series: series as any, // eslint-disable-line @typescript-eslint/no-explicit-any
-      visualMap: {
-        show: false,
-        pieces: [
-          {
-            gt: currentDrug.toxicLevel,
-            color: "#ef4444",
+      series: series.map((s) => ({
+        ...s,
+        markArea: {
+          silent: true,
+          itemStyle: {
+            color: "rgba(34, 197, 94, 0.08)",
           },
-        ],
-      },
+          data: [
+            [
+              {
+                yAxis: currentDrug.therapeuticMin,
+                itemStyle: { color: "rgba(239, 68, 68, 0.06)" },
+              },
+              { yAxis: 0 },
+            ],
+            [
+              { yAxis: currentDrug.therapeuticMin },
+              { yAxis: currentDrug.therapeuticMax },
+            ],
+            [
+              {
+                yAxis: currentDrug.therapeuticMax,
+                itemStyle: { color: "rgba(249, 115, 22, 0.08)" },
+              },
+              { yAxis: currentDrug.toxicLevel },
+            ],
+            [
+              {
+                yAxis: currentDrug.toxicLevel,
+                itemStyle: { color: "rgba(239, 68, 68, 0.12)" },
+              },
+              { yAxis: "max" },
+            ],
+          ],
+        },
+        markLine: {
+          silent: true,
+          symbol: "none",
+          data: [
+            {
+              yAxis: currentDrug.therapeuticMin,
+              lineStyle: {
+                color: "#22c55e",
+                type: "dashed",
+                width: 1.5,
+              },
+              label: {
+                formatter: "治疗下限",
+                fontSize: 10,
+                color: "#16a34a",
+                position: "end",
+              },
+            },
+            {
+              yAxis: currentDrug.therapeuticMax,
+              lineStyle: {
+                color: "#f97316",
+                type: "dashed",
+                width: 1.5,
+              },
+              label: {
+                formatter: "治疗上限",
+                fontSize: 10,
+                color: "#ea580c",
+                position: "end",
+              },
+            },
+            {
+              yAxis: currentDrug.toxicLevel,
+              lineStyle: {
+                color: "#ef4444",
+                type: "solid",
+                width: 2,
+              },
+              label: {
+                formatter: "中毒线",
+                fontSize: 10,
+                color: "#dc2626",
+                position: "end",
+              },
+            },
+          ],
+        },
+      })) as any, // eslint-disable-line @typescript-eslint/no-explicit-any
     };
 
     chartInstance.current.setOption(option, true);
