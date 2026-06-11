@@ -10,6 +10,7 @@ import {
   WrongQuestion,
   QuestionStats,
   SmartQuizConfig,
+  Note,
 } from "@/types";
 import { generateId, shuffleArray } from "@/utils/helpers";
 import { quizQuestions } from "@/data/questions";
@@ -29,6 +30,7 @@ export const useStore = create<Store>()(
       currentQuiz: null,
       wrongQuestions: [],
       questionStats: [],
+      notes: [],
 
       updateChapterProgress: (
         chapterId: string,
@@ -288,6 +290,40 @@ export const useStore = create<Store>()(
 
       clearWrongQuestions: () => {
         set({ wrongQuestions: [] });
+      },
+
+      addNote: (note: Omit<Note, "id" | "createdAt" | "updatedAt">): Note => {
+        const now = new Date().toISOString();
+        const newNote: Note = {
+          ...note,
+          id: generateId(),
+          createdAt: now,
+          updatedAt: now,
+        };
+        set((state) => ({
+          notes: [newNote, ...state.notes],
+        }));
+        return newNote;
+      },
+
+      updateNote: (id: string, updates: Partial<Note>) => {
+        set((state) => ({
+          notes: state.notes.map((note) =>
+            note.id === id
+              ? { ...note, ...updates, updatedAt: new Date().toISOString() }
+              : note
+          ),
+        }));
+      },
+
+      deleteNote: (id: string) => {
+        set((state) => ({
+          notes: state.notes.filter((note) => note.id !== id),
+        }));
+      },
+
+      getNote: (id: string): Note | undefined => {
+        return get().notes.find((note) => note.id === id);
       },
     }),
     {

@@ -23,6 +23,8 @@ export interface Drug {
   category: string;
   indications: string[];
   mechanism: string;
+  halfLife: string;
+  metabolism: string;
   adverseReactions: string[];
   contraindications: string[];
   dosage: string;
@@ -156,6 +158,16 @@ export interface KnowledgeGraphData {
   edges: GraphEdge[];
 }
 
+export interface Note {
+  id: string;
+  title: string;
+  content: string;
+  type: "general" | "drug-compare";
+  drugIds?: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AppState {
   learningProgress: LearningProgress[];
   quizHistory: QuizHistory[];
@@ -166,6 +178,7 @@ export interface AppState {
   } | null;
   wrongQuestions: WrongQuestion[];
   questionStats: QuestionStats[];
+  notes: Note[];
 }
 
 export interface AppActions {
@@ -182,6 +195,10 @@ export interface AppActions {
   getQuestionAccuracy: (questionId: string) => number;
   getSmartQuizQuestions: (config?: Partial<SmartQuizConfig>, category?: string) => QuizQuestion[];
   clearWrongQuestions: () => void;
+  addNote: (note: Omit<Note, "id" | "createdAt" | "updatedAt">) => Note;
+  updateNote: (id: string, updates: Partial<Note>) => void;
+  deleteNote: (id: string) => void;
+  getNote: (id: string) => Note | undefined;
 }
 
 export type Gender = "male" | "female";

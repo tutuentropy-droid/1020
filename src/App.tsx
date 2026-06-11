@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "@/pages/Home";
 import DrugList from "@/pages/DrugList";
 import DrugDetail from "@/pages/DrugDetail";
+import DrugCompare from "@/pages/DrugCompare";
 import DrugInteractionPage from "@/pages/DrugInteraction";
 import CaseLibrary from "@/pages/CaseLibrary";
 import LearnList from "@/pages/LearnList";
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/drugs" element={<DrugList />} />
           <Route path="/drugs/:id" element={<DrugDetail />} />
+          <Route path="/drug-compare" element={<DrugCompare />} />
           <Route path="/interactions" element={<DrugInteractionPage />} />
           <Route path="/calculators" element={<PharmacologyCalculators />} />
           <Route path="/tdm-exercise" element={<TDMExercise />} />

@@ -22,6 +22,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "青霉素类广谱抗生素，通过抑制细菌细胞壁合成发挥杀菌作用。对革兰阳性菌和部分革兰阴性菌有效。",
+    halfLife: "约1-1.5小时",
+    metabolism: "主要以原形经肾脏排泄，约60%-70%经肾小球滤过和肾小管分泌排出",
     adverseReactions: [
       "过敏反应：皮疹、荨麻疹、过敏性休克",
       "胃肠道反应：恶心、呕吐、腹泻",
@@ -116,6 +118,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "第三代口服头孢菌素，通过抑制细菌细胞壁合成而起杀菌作用，对革兰阴性菌作用强，对革兰阳性菌也有一定活性。",
+    halfLife: "约3-4小时",
+    metabolism: "主要以原形经肾脏排泄，部分在肝脏代谢",
     adverseReactions: [
       "胃肠道反应：腹泻、恶心、腹痛",
       "皮疹、瘙痒等过敏反应",
@@ -193,6 +197,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "喹诺酮类抗生素，通过抑制细菌DNA旋转酶和拓扑异构酶IV，阻止细菌DNA复制和转录。",
+    halfLife: "约6-8小时",
+    metabolism: "主要以原形经肾脏排泄，少量在肝脏代谢",
     adverseReactions: [
       "胃肠道反应：恶心、腹泻、便秘",
       "中枢神经系统：头痛、头晕、失眠",
@@ -289,6 +295,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "大环内酯类抗生素，通过与细菌核糖体的50S亚基结合，抑制细菌蛋白质合成。",
+    halfLife: "约68小时（组织半衰期更长）",
+    metabolism: "主要在肝脏代谢，经胆汁排泄",
     adverseReactions: [
       "胃肠道反应：腹泻、腹痛、恶心、呕吐",
       "皮疹、瘙痒",
@@ -373,6 +381,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "钙通道阻滞剂，通过阻断心肌和血管平滑肌细胞膜上的钙离子通道，减少细胞外钙离子内流，使血管扩张、心肌收缩力降低。",
+    halfLife: "普通片约2-3小时，缓释/控释片约6-8小时",
+    metabolism: "主要在肝脏经CYP3A4代谢，肾脏排泄",
     adverseReactions: [
       "外周水肿（踝部常见）",
       "面部潮红、头痛",
@@ -471,6 +481,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "选择性β1受体阻滞剂，通过阻断心脏β1受体，减慢心率、降低心肌收缩力、减少心输出量、降低心肌耗氧量。",
+    halfLife: "酒石酸美托洛尔约3-4小时，琥珀酸美托洛尔缓释片约20小时",
+    metabolism: "主要在肝脏经CYP2D6代谢，肾脏排泄",
     adverseReactions: [
       "心动过缓",
       "乏力、疲劳",
@@ -570,6 +582,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "HMG-CoA还原酶抑制剂（他汀类），通过竞争性抑制胆固醇合成的关键酶HMG-CoA还原酶，减少内源性胆固醇合成，上调低密度脂蛋白受体。",
+    halfLife: "约14小时（活性代谢物半衰期约20-30小时）",
+    metabolism: "主要在肝脏经CYP3A4代谢，经胆汁排泄",
     adverseReactions: [
       "胃肠道不适：便秘、胃肠胀气",
       "肌痛、肌炎、横纹肌溶解（罕见但严重）",
@@ -665,6 +679,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "通过不可逆抑制环氧化酶（COX），减少前列腺素和血栓素A2的合成。小剂量主要抑制血小板COX-1，发挥抗血小板聚集作用。",
+    halfLife: "小剂量约15-20分钟，大剂量可延长",
+    metabolism: "主要在肝脏代谢为水杨酸，经肾脏排泄",
     adverseReactions: [
       "胃肠道反应：上腹不适、恶心、呕吐、消化道出血",
       "凝血障碍：出血时间延长",
@@ -763,6 +779,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "质子泵抑制剂（PPI），通过特异性抑制胃壁细胞H+-K+-ATP酶（质子泵），减少胃酸分泌，作用强而持久。",
+    halfLife: "约0.5-1小时（作用持续时间长）",
+    metabolism: "主要在肝脏经CYP2C19和CYP3A4代谢，经肾脏排泄",
     adverseReactions: [
       "头痛、头晕",
       "胃肠道反应：恶心、腹泻、便秘、腹胀",
@@ -858,6 +876,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "外周多巴胺受体阻滞剂，通过阻断胃肠道多巴胺受体，促进胃肠蠕动和胃排空，同时有一定止吐作用。不易透过血脑屏障。",
+    halfLife: "约7-8小时",
+    metabolism: "主要在肝脏代谢，经CYP3A4酶参与，大部分经粪便排泄",
     adverseReactions: [
       "头痛、头晕",
       "嗜睡",
@@ -945,6 +965,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "层状结构硅酸盐，具有巨大的表面积及非均匀性电荷分布，可吸附消化道内的病毒、细菌及其产生的毒素，同时保护消化道黏膜。",
+    halfLife: "不吸收，无半衰期概念",
+    metabolism: "不进入血液循环，以原形随粪便排出",
     adverseReactions: [
       "便秘（偶见）",
       "大便干结",
@@ -1027,6 +1049,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "磷酸二酯酶抑制剂，通过抑制磷酸二酯酶使细胞内cAMP水平升高，舒张支气管平滑肌，同时具有强心、利尿、兴奋呼吸中枢等作用。",
+    halfLife: "成人约6-12小时，儿童约3-5小时",
+    metabolism: "主要在肝脏代谢，约10%以原形经肾脏排泄",
     adverseReactions: [
       "胃肠道反应：恶心、呕吐、胃部不适",
       "中枢兴奋：失眠、头痛、烦躁",
@@ -1114,6 +1138,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "选择性β2肾上腺素受体激动剂，通过激动支气管平滑肌β2受体，激活腺苷酸环化酶，增加cAMP水平，松弛支气管平滑肌。",
+    halfLife: "口服约2.7-5小时，吸入约3.8小时",
+    metabolism: "主要在肝脏代谢，经肾脏排泄",
     adverseReactions: [
       "心悸、心动过速",
       "头痛、头晕",
@@ -1209,6 +1235,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "吸入性糖皮质激素，通过与糖皮质激素受体结合，抑制炎症细胞的迁移和活化，减少炎症介质的释放，具有强效局部抗炎作用。",
+    halfLife: "约2-3小时",
+    metabolism: "主要在肝脏经CYP3A4代谢，首过效应强",
     adverseReactions: [
       "口腔念珠菌感染（鹅口疮）",
       "声音嘶哑、咽部不适",
@@ -1305,6 +1333,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "苯二氮䓬类药物，通过增强γ-氨基丁酸（GABA）对GABAA受体的作用，增加氯离子通道开放频率，产生中枢抑制作用。",
+    halfLife: "约20-100小时（活性代谢物去甲西泮更长）",
+    metabolism: "主要在肝脏代谢，经肾脏排泄",
     adverseReactions: [
       "嗜睡、头晕、乏力",
       "记忆力下降",
@@ -1402,6 +1432,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "非选择性环氧化酶（COX）抑制剂，通过抑制前列腺素合成，发挥解热、镇痛、抗炎作用。",
+    halfLife: "约1.8-2.5小时",
+    metabolism: "主要在肝脏代谢，经肾脏排泄",
     adverseReactions: [
       "胃肠道反应：上腹不适、恶心、呕吐、消化道溃疡/出血",
       "头晕、头痛",
@@ -1497,6 +1529,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "双胍类降糖药，主要通过减少肝脏葡萄糖输出（抑制糖异生），增加外周组织对胰岛素的敏感性，促进葡萄糖摄取和利用。",
+    halfLife: "约6.2小时",
+    metabolism: "几乎不经过肝脏代谢，主要以原形经肾脏排泄",
     adverseReactions: [
       "胃肠道反应：食欲不振、恶心、呕吐、腹泻、口中金属味",
       "维生素B12缺乏（长期使用）",
@@ -1594,6 +1628,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "胰岛素是由胰岛β细胞分泌的蛋白质激素，通过与靶组织细胞膜上的胰岛素受体结合，促进葡萄糖摄取、利用和储存，降低血糖。",
+    halfLife: "普通胰岛素约5-10分钟，不同制剂差异大",
+    metabolism: "主要在肝脏、肾脏和肌肉中代谢灭活",
     adverseReactions: [
       "低血糖反应（最常见）：心悸、出汗、饥饿、手抖、严重者意识障碍",
       "过敏反应：注射部位红肿、瘙痒",
@@ -1689,6 +1725,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "人工合成的甲状腺素（T4），在外周组织转化为活性更高的三碘甲状腺原氨酸（T3），维持机体正常代谢、生长发育。",
+    halfLife: "约6-7天",
+    metabolism: "主要在肝脏、肾脏代谢，经脱碘酶转化为T3",
     adverseReactions: [
       "剂量过大出现甲亢症状：心悸、多汗、手抖、失眠、体重下降、食欲亢进",
       "骨质疏松（长期超剂量）",
@@ -1775,6 +1813,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "第二代非镇静H1受体拮抗剂，选择性阻断外周H1受体，抑制组胺释放，不易透过血脑屏障，无明显中枢镇静作用。",
+    halfLife: "约8-11小时（活性代谢物约17-24小时）",
+    metabolism: "主要在肝脏经CYP3A4和CYP2D6代谢",
     adverseReactions: [
       "头痛、头晕",
       "乏力",
@@ -1869,6 +1909,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "香豆素类口服抗凝药，通过抑制维生素K环氧化物还原酶，阻止维生素K的循环利用，从而抑制肝脏合成凝血因子Ⅱ、Ⅶ、Ⅸ、Ⅹ的活化。",
+    halfLife: "约20-60小时（平均40小时）",
+    metabolism: "主要在肝脏经CYP2C9代谢，经肾脏排泄",
     adverseReactions: [
       "出血：最常见，可表现为牙龈出血、皮下瘀斑、消化道出血等",
       "皮肤坏死（罕见）",
@@ -1964,6 +2006,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "HMG-CoA还原酶抑制剂（他汀类），通过竞争性抑制内源性胆固醇合成的限速酶HMG-CoA还原酶，减少胆固醇合成。",
+    halfLife: "约2-3小时（活性代谢物半衰期较长）",
+    metabolism: "主要在肝脏经CYP3A4代谢，首过效应高",
     adverseReactions: [
       "胃肠道不适：便秘、胃肠胀气",
       "肌痛、肌炎、横纹肌溶解（罕见但严重）",
@@ -2060,6 +2104,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "大环内酯类抗生素，通过与细菌核糖体50S亚基结合，抑制细菌蛋白质合成。",
+    halfLife: "约1.5-2小时",
+    metabolism: "主要在肝脏代谢，经胆汁排泄，部分肝肠循环",
     adverseReactions: [
       "胃肠道反应：恶心、呕吐、腹泻、腹痛",
       "肝功能异常",
@@ -2155,6 +2201,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "喹诺酮类抗生素，通过抑制细菌DNA旋转酶和拓扑异构酶IV，阻止细菌DNA复制。",
+    halfLife: "约4-6小时",
+    metabolism: "主要以原形经肾脏排泄，部分在肝脏代谢",
     adverseReactions: [
       "胃肠道反应：恶心、腹泻",
       "中枢神经系统：头痛、头晕、失眠",
@@ -2250,6 +2298,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "强心苷类药物，通过抑制心肌细胞膜Na+-K+-ATP酶，使细胞内Ca2+增加，增强心肌收缩力；同时减慢心率、抑制房室传导。",
+    halfLife: "约36-48小时",
+    metabolism: "少量在肝脏代谢，主要以原形经肾脏排泄",
     adverseReactions: [
       "心律失常：室性早搏、房室传导阻滞等",
       "胃肠道反应：恶心、呕吐、厌食",
@@ -2343,6 +2393,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "非二氢吡啶类钙通道阻滞剂，通过阻断钙离子内流，扩张血管、抑制心肌收缩和传导。",
+    halfLife: "约3-7小时",
+    metabolism: "主要在肝脏代谢，首过效应强，经肾脏排泄",
     adverseReactions: [
       "心动过缓、房室传导阻滞",
       "便秘",
@@ -2438,6 +2490,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "利福霉素类广谱抗生素，通过抑制细菌DNA依赖的RNA聚合酶，阻碍mRNA合成。",
+    halfLife: "约2-5小时（反复用药后可缩短）",
+    metabolism: "主要在肝脏代谢，经胆汁排泄，存在肝肠循环",
     adverseReactions: [
       "肝毒性：转氨酶升高、黄疸",
       "胃肠道反应：恶心、呕吐",
@@ -2532,6 +2586,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "单胺氧化酶抑制剂（MAOI），不可逆抑制单胺氧化酶，增加脑内单胺类神经递质（5-HT、NE、DA）浓度。",
+    halfLife: "约1-2小时（作用持续时间长）",
+    metabolism: "主要在肝脏代谢，经肾脏排泄，MAO抑制作用不可逆",
     adverseReactions: [
       "体位性低血压",
       "头晕、失眠",
@@ -2629,6 +2685,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "硝基咪唑类抗菌药物，在厌氧菌体内还原为活性产物，作用于细菌DNA，抑制核酸合成。",
+    halfLife: "约8-10小时",
+    metabolism: "主要在肝脏代谢，经肾脏排泄",
     adverseReactions: [
       "胃肠道反应：恶心、呕吐、金属味",
       "神经系统：头痛、头晕",
@@ -2724,6 +2782,8 @@ export const drugs: Drug[] = [
     ],
     mechanism:
       "血管紧张素转换酶抑制剂（ACEI），通过抑制血管紧张素转换酶，减少血管紧张素Ⅱ生成，扩张血管。",
+    halfLife: "依那普利拉约11小时",
+    metabolism: "在肝脏水解为活性代谢物依那普利拉，主要经肾脏排泄",
     adverseReactions: [
       "干咳",
       "低血压",

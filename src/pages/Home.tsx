@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Pill, BookOpen, FileQuestion, TrendingUp, ArrowRight, GraduationCap, Target, Award, AlertTriangle, Library, BookX, Zap, Network, Calculator, ShieldAlert } from "lucide-react";
+import { Pill, BookOpen, FileQuestion, TrendingUp, ArrowRight, GraduationCap, Target, Award, AlertTriangle, Library, BookX, Zap, Network, Calculator, ShieldAlert, GitCompare } from "lucide-react";
 import { useStore } from "@/store/useStore";
 
 const featureCards = [
@@ -10,6 +10,14 @@ const featureCards = [
     link: "/drugs",
     gradient: "from-blue-500 to-indigo-600",
     bgLight: "bg-blue-50",
+  },
+  {
+    title: "药物对比",
+    description: "选择2-4种药物并排对比关键属性，高亮显示差异项，深入理解同类药物异同",
+    icon: GitCompare,
+    link: "/drug-compare",
+    gradient: "from-cyan-500 to-blue-600",
+    bgLight: "bg-cyan-50",
   },
   {
     title: "药理知识图谱",
