@@ -8,6 +8,7 @@ import {
   Pill,
   Info,
   History,
+  Brain,
 } from "lucide-react";
 import { drugs } from "@/data/drugs";
 import { cn } from "@/lib/utils";
@@ -180,6 +181,15 @@ export default function DrugDetail() {
             >
               {drug.category}
             </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate(`/mindmap/drug/${drug.id}`)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 rounded-xl text-white font-medium transition-all"
+            >
+              <Brain className="w-5 h-5" />
+              生成思维导图
+            </button>
           </div>
         </div>
       </div>

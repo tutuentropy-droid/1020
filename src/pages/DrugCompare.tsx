@@ -118,15 +118,38 @@ export default function DrugCompare() {
     
     let content = `## 药物对比结果\n\n`;
     content += `对比药物：${selectedDrugs.map((d) => d.name).join("、")}\n\n`;
+
+    const differentFields: string[] = [];
+    compareFields.forEach((field) => {
+      if (isFieldDifferent(selectedDrugs, field.key, field.isArray)) {
+        differentFields.push(field.label);
+      }
+    });
+    if (differentFields.length > 0) {
+      content += `存在差异的属性：${differentFields.join("、")}\n\n`;
+    } else {
+      content += `所有属性均一致\n\n`;
+    }
     content += `---\n\n`;
 
     compareFields.forEach((field) => {
-      content += `### ${field.label}\n\n`;
+      const isDifferent = isFieldDifferent(selectedDrugs, field.key, field.isArray);
+      content += `### ${field.label}${isDifferent ? " 🔴（存在差异）" : " ✅（一致）"}\n\n`;
       selectedDrugs.forEach((drug) => {
         const value = getFieldValue(drug, field.key);
         content += `**${drug.name}**：`;
         if (field.isArray && Array.isArray(value)) {
-          content += value.join("；");
+          content += value.map((item, idx) => {
+            if (isDifferent) {
+              const otherDrugs = selectedDrugs.filter((d) => d.id !== drug.id);
+              const isUniqueItem = !otherDrugs.some((od) => {
+                const otherValue = getFieldValue(od, field.key) as string[];
+                return otherValue.includes(item);
+              });
+              return isUniqueItem ? `\`${item}\`（${drug.name}独有）` : item;
+            }
+            return item;
+          }).join("；");
         } else {
           content += value;
         }
@@ -135,7 +158,7 @@ export default function DrugCompare() {
       content += `---\n\n`;
     });
 
-    content += `> 注：高亮项表示药物间存在差异的属性`;
+    content += `> 说明：🔴标注的属性表示药物间存在差异；标有(药物名独有的内容为该药物独有内容`;
 
     addNote({
       title,

@@ -1,11 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, BookOpen, Pill, FileQuestion, TrendingUp, AlertTriangle, Library, BookX, Network, Calculator, ShieldAlert, Stethoscope, Activity, GitCompare } from "lucide-react";
+import { Home, BookOpen, Pill, FileQuestion, TrendingUp, AlertTriangle, Library, BookX, Network, Calculator, ShieldAlert, Stethoscope, Activity, GitCompare, BookMarked, Brain } from "lucide-react";
 
 const navItems = [
   { path: "/", label: "首页", icon: Home },
   { path: "/drugs", label: "药物知识库", icon: Pill },
   { path: "/drug-compare", label: "药物对比", icon: GitCompare },
   { path: "/knowledge-graph", label: "知识图谱", icon: Network },
+  { path: "/mindmap", label: "思维导图", icon: Brain },
   { path: "/interactions", label: "相互作用查询", icon: AlertTriangle },
   { path: "/calculators", label: "药理计算器", icon: Calculator },
   { path: "/tdm-exercise", label: "TDM模拟练习", icon: Activity },
@@ -15,6 +16,7 @@ const navItems = [
   { path: "/learn", label: "学习模块", icon: BookOpen },
   { path: "/quiz", label: "测验系统", icon: FileQuestion },
   { path: "/wrong-book", label: "错题本", icon: BookX },
+  { path: "/notes", label: "我的笔记", icon: BookMarked },
   { path: "/progress", label: "我的进度", icon: TrendingUp },
 ];
 

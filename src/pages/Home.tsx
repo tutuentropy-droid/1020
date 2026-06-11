@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Pill, BookOpen, FileQuestion, TrendingUp, ArrowRight, GraduationCap, Target, Award, AlertTriangle, Library, BookX, Zap, Network, Calculator, ShieldAlert, GitCompare } from "lucide-react";
+import { Pill, BookOpen, FileQuestion, TrendingUp, ArrowRight, GraduationCap, Target, Award, AlertTriangle, Library, BookX, Zap, Network, Calculator, ShieldAlert, GitCompare, BookMarked } from "lucide-react";
 import { useStore } from "@/store/useStore";
 
 const featureCards = [
@@ -82,6 +82,14 @@ const featureCards = [
     link: "/wrong-book",
     gradient: "from-rose-500 to-red-600",
     bgLight: "bg-rose-50",
+  },
+  {
+    title: "我的笔记",
+    description: "查看和管理已保存的药物对比笔记，支持新建、编辑和删除，随时回顾学习要点",
+    icon: BookMarked,
+    link: "/notes",
+    gradient: "from-amber-500 to-orange-600",
+    bgLight: "bg-amber-50",
   },
   {
     title: "个人进度",

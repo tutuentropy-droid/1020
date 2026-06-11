@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import {
-  ArrowLeft, Tag, BookOpen, CheckCircle2, AlertCircle } from "lucide-react";
+  ArrowLeft, Tag, BookOpen, CheckCircle2, AlertCircle, Brain } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import QuestionCard from "@/components/QuestionCard";
 import { chapters } from "@/data/chapters";
@@ -174,6 +174,15 @@ export default function LearnDetail() {
               <h1 className="text-2xl sm:text-3xl font-bold text-white">
                 {chapter.title}
               </h1>
+            </div>
+            <div className="absolute right-6 bottom-6">
+              <button
+                onClick={() => navigate(`/mindmap/chapter/${chapter.id}`)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 rounded-xl text-white font-medium transition-all"
+              >
+                <Brain className="w-5 h-5" />
+                生成思维导图
+              </button>
             </div>
           </div>
         </div>

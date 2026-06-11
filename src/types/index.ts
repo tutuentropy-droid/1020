@@ -532,3 +532,47 @@ export interface PKCurveData {
   cssAvg: number;
   timeToSteadyState: number;
 }
+
+export type MindMapNodeType =
+  | "root"
+  | "category"
+  | "mechanism"
+  | "indication"
+  | "adverseReaction"
+  | "contraindication"
+  | "interaction"
+  | "dosage"
+  | "pharmacokinetics"
+  | "note";
+
+export interface MindMapNode {
+  id: string;
+  name: string;
+  type: MindMapNodeType;
+  description?: string;
+  parentId?: string;
+  note?: string;
+  children?: MindMapNode[];
+}
+
+export interface MindMapData {
+  id: string;
+  title: string;
+  sourceType: "drug" | "chapter";
+  sourceId: string;
+  sourceName: string;
+  rootNode: MindMapNode;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MindMapExportOptions {
+  format: "png" | "pdf";
+  includeNotes: boolean;
+  quality?: number;
+}
+
+export interface GenerateMindMapParams {
+  sourceType: "drug" | "chapter";
+  sourceId: string;
+}
