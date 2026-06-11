@@ -11,6 +11,7 @@ import QuizHome from "@/pages/QuizHome";
 import QuizActive from "@/pages/QuizActive";
 import QuizResult from "@/pages/QuizResult";
 import Progress from "@/pages/Progress";
+import Dashboard from "@/pages/Dashboard";
 import WrongBook from "@/pages/WrongBook";
 import KnowledgeGraphPage from "@/pages/KnowledgeGraph";
 import PharmacologyCalculators from "@/pages/PharmacologyCalculators";
@@ -45,6 +46,7 @@ export default function App() {
           <Route path="/quiz/result" element={<QuizResult />} />
           <Route path="/wrong-book" element={<WrongBook />} />
           <Route path="/progress" element={<Progress />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/knowledge-graph" element={<KnowledgeGraphPage />} />
           <Route path="/notes" element={<Notes />} />
           <Route path="/mindmap" element={<MindMapPage />} />

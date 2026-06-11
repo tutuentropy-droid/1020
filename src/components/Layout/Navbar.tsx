@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, BookOpen, Pill, FileQuestion, TrendingUp, AlertTriangle, Library, BookX, Network, Calculator, ShieldAlert, Stethoscope, Activity, GitCompare, BookMarked, Brain, BookOpenCheck, FlaskConical } from "lucide-react";
+import { Home, BookOpen, Pill, FileQuestion, TrendingUp, AlertTriangle, Library, BookX, Network, Calculator, ShieldAlert, Stethoscope, Activity, GitCompare, BookMarked, Brain, BookOpenCheck, FlaskConical, BarChart3 } from "lucide-react";
 
 const navItems = [
   { path: "/", label: "首页", icon: Home },
@@ -20,6 +20,7 @@ const navItems = [
   { path: "/wrong-book", label: "错题本", icon: BookX },
   { path: "/notes", label: "我的笔记", icon: BookMarked },
   { path: "/progress", label: "我的进度", icon: TrendingUp },
+  { path: "/dashboard", label: "学习看板", icon: BarChart3 },
 ];
 
 export default function Navbar() {

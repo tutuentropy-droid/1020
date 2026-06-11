@@ -16,12 +16,20 @@ import {
   GameState,
   GameResult,
   GameHistory,
-  GameStageId,
+  LearningSession,
+  LearningActivityType,
+  DashboardAnalytics,
+  ChapterMastery,
+  DailyStudyRecord,
+  ErrorTypeDistribution,
+  ErrorCategory,
+  WeakPoint,
 } from "@/types";
 import { generateId, shuffleArray } from "@/utils/helpers";
 import { quizQuestions } from "@/data/questions";
 import { initialComments } from "@/data/journalClub";
-import { gameAchievements, gameStages, getDecisionsByStage } from "@/data/drugDevGame";
+import { gameAchievements, gameStages } from "@/data/drugDevGame";
+import { chapters } from "@/data/chapters";
 
 type Store = AppState & AppActions;
 
@@ -61,6 +69,7 @@ export const useStore = create<Store>()(
       gameHistory: [],
       gameAchievements: gameAchievements.map((a) => ({ ...a })),
       viewedKnowledgePopups: INITIAL_KNOWLEDGE_VIEWED,
+      learningSessions: [],
 
       updateChapterProgress: (
         chapterId: string,
@@ -613,6 +622,360 @@ export const useStore = create<Store>()(
         if (!stage) return false;
         const successChance = state.gameState.currentSuccessRate;
         return Math.random() * 100 < successChance;
+      },
+
+      startLearningSession: (
+        type: LearningActivityType,
+        metadata?: { chapterId?: string; quizId?: string; caseId?: string }
+      ): string => {
+        const sessionId = generateId();
+        const now = new Date().toISOString();
+        const session: LearningSession = {
+          id: sessionId,
+          type,
+          startTime: now,
+          endTime: now,
+          durationMinutes: 0,
+          ...metadata,
+        };
+        set((state) => ({
+          learningSessions: [...state.learningSessions, session],
+        }));
+        return sessionId;
+      },
+
+      endLearningSession: (sessionId: string) => {
+        set((state) => {
+          const updated = state.learningSessions.map((s) => {
+            if (s.id === sessionId) {
+              const end = new Date();
+              const start = new Date(s.startTime);
+              const durationMinutes = Math.max(
+                1,
+                Math.round((end.getTime() - start.getTime()) / 60000)
+              );
+              return {
+                ...s,
+                endTime: end.toISOString(),
+                durationMinutes,
+              };
+            }
+            return s;
+          });
+          return { learningSessions: updated };
+        });
+      },
+
+      addLearningSession: (session: Omit<LearningSession, "id">) => {
+        set((state) => ({
+          learningSessions: [
+            ...state.learningSessions,
+            { ...session, id: generateId() },
+          ],
+        }));
+      },
+
+      getDashboardAnalytics: (): DashboardAnalytics => {
+        const state = get();
+
+        const errorCategoryLabels: Record<ErrorCategory, string> = {
+          mechanism: "作用机制",
+          indication: "适应症",
+          dosage: "剂量用法",
+          "adverse-reaction": "不良反应",
+          contraindication: "禁忌症",
+          interaction: "药物相互作用",
+          pharmacokinetics: "药代动力学",
+          "clinical-application": "临床应用",
+          calculation: "计算问题",
+          other: "其他",
+        };
+
+        const classifyError = (question: QuizQuestion): ErrorCategory => {
+          const text = question.question.toLowerCase() + " " + question.explanation.toLowerCase();
+          if (text.includes("机制") || text.includes("作用") || text.includes("原理")) return "mechanism";
+          if (text.includes("适应症") || text.includes("用于") || text.includes("治疗")) return "indication";
+          if (text.includes("剂量") || text.includes("用法") || text.includes("mg") || text.includes("给药")) return "dosage";
+          if (text.includes("不良反应") || text.includes("副作用") || text.includes("毒性")) return "adverse-reaction";
+          if (text.includes("禁忌") || text.includes("禁用") || text.includes("慎用")) return "contraindication";
+          if (text.includes("相互作用") || text.includes("合用") || text.includes("联合")) return "interaction";
+          if (text.includes("药代") || text.includes("半衰期") || text.includes("代谢") || text.includes("排泄")) return "pharmacokinetics";
+          if (text.includes("临床") || text.includes("患者") || text.includes("病例")) return "clinical-application";
+          if (text.includes("计算") || text.includes("清除率") || text.includes("浓度")) return "calculation";
+          return "other";
+        };
+
+        const chapterMasteryList: ChapterMastery[] = chapters.map((chapter) => {
+          const chapterQuestions = quizQuestions.filter((q) => q.category === chapter.category);
+          const chapterProgress = state.learningProgress.find((p) => p.chapterId === chapter.id);
+          const chapterQuizHistory = state.quizHistory.filter((qh) =>
+            qh.questionIds.some((qid) => chapterQuestions.find((cq) => cq.id === qid))
+          );
+
+          let correctCount = 0;
+          let totalAttempts = 0;
+          let wrongCount = 0;
+
+          chapterQuestions.forEach((q) => {
+            const stats = state.questionStats.find((s) => s.questionId === q.id);
+            if (stats) {
+              totalAttempts += stats.totalAttempts;
+              correctCount += stats.correctAttempts;
+              wrongCount += stats.totalAttempts - stats.correctAttempts;
+            }
+            const wrong = state.wrongQuestions.find((w) => w.questionId === q.id);
+            if (wrong && !stats) {
+              wrongCount += wrong.wrongCount;
+              totalAttempts += wrong.wrongCount;
+            }
+          });
+
+          const masteryRate =
+            totalAttempts > 0
+              ? Math.round((correctCount / totalAttempts) * 100)
+              : chapterProgress?.status === "completed"
+              ? chapterProgress.score
+              : chapterProgress?.status === "in-progress"
+              ? 50
+              : 0;
+
+          const totalScores = chapterQuizHistory.reduce(
+            (sum, qh) => sum + (qh.score / qh.totalQuestions) * 100,
+            0
+          );
+          const avgScore =
+            chapterQuizHistory.length > 0
+              ? Math.round(totalScores / chapterQuizHistory.length)
+              : 0;
+
+          return {
+            chapterId: chapter.id,
+            chapterTitle: chapter.title,
+            category: chapter.category,
+            masteryRate,
+            totalQuestions: chapterQuestions.length,
+            correctCount,
+            wrongCount,
+            quizAttempts: chapterQuizHistory.length,
+            avgScore,
+          };
+        });
+
+        const dailyMap = new Map<string, DailyStudyRecord>();
+        const defaultActivities: Record<LearningActivityType, number> = {
+          chapter: 0,
+          quiz: 0,
+          case: 0,
+          tdm: 0,
+          adr: 0,
+          consultation: 0,
+          notes: 0,
+          game: 0,
+        };
+
+        state.learningSessions.forEach((session) => {
+          const date = session.startTime.split("T")[0];
+          if (!dailyMap.has(date)) {
+            dailyMap.set(date, {
+              date,
+              totalMinutes: 0,
+              activities: { ...defaultActivities },
+            });
+          }
+          const record = dailyMap.get(date)!;
+          record.totalMinutes += session.durationMinutes;
+          record.activities[session.type] =
+            (record.activities[session.type] || 0) + session.durationMinutes;
+        });
+
+        state.quizHistory.forEach((qh) => {
+          const date = qh.date.split("T")[0];
+          if (!dailyMap.has(date)) {
+            dailyMap.set(date, {
+              date,
+              totalMinutes: 0,
+              activities: { ...defaultActivities },
+            });
+          }
+          const record = dailyMap.get(date)!;
+          record.totalMinutes += 5;
+          record.activities.quiz += 5;
+        });
+
+        const today = new Date();
+        for (let i = 29; i >= 0; i--) {
+          const d = new Date(today);
+          d.setDate(d.getDate() - i);
+          const dateStr = d.toISOString().split("T")[0];
+          if (!dailyMap.has(dateStr)) {
+            dailyMap.set(dateStr, {
+              date: dateStr,
+              totalMinutes: 0,
+              activities: { ...defaultActivities },
+            });
+          }
+        }
+
+        const dailyStudyRecords = Array.from(dailyMap.values()).sort((a, b) =>
+          a.date.localeCompare(b.date)
+        );
+
+        const totalStudyDays = dailyStudyRecords.filter((d) => d.totalMinutes > 0).length;
+        const totalStudyMinutes = dailyStudyRecords.reduce(
+          (sum, d) => sum + d.totalMinutes,
+          0
+        );
+        const avgDailyMinutes =
+          totalStudyDays > 0 ? Math.round(totalStudyMinutes / totalStudyDays) : 0;
+
+        let streakDays = 0;
+        const sortedDates = dailyStudyRecords
+          .filter((d) => d.totalMinutes > 0)
+          .map((d) => d.date)
+          .sort((a, b) => b.localeCompare(a));
+        if (sortedDates.length > 0) {
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          let currentCheckTime = Math.max(
+            new Date(sortedDates[0]).getTime(),
+            yesterday.getTime()
+          );
+          for (const d of sortedDates) {
+            const recordDate = new Date(d);
+            recordDate.setHours(0, 0, 0, 0);
+            const checkDate = new Date(currentCheckTime);
+            checkDate.setHours(0, 0, 0, 0);
+            if (
+              recordDate.getTime() === checkDate.getTime() ||
+              (streakDays === 0 && recordDate <= checkDate)
+            ) {
+              streakDays++;
+              currentCheckTime = checkDate.setDate(checkDate.getDate() - 1);
+            } else if (streakDays > 0) {
+              break;
+            }
+          }
+          if (streakDays === 0 && sortedDates.length > 0) {
+            streakDays = 1;
+          }
+        }
+
+        const errorCounts = new Map<ErrorCategory, number>();
+        const totalErrors = state.wrongQuestions.reduce(
+          (sum, w) => sum + w.wrongCount,
+          0
+        );
+
+        state.wrongQuestions.forEach((w) => {
+          const question = quizQuestions.find((q) => q.id === w.questionId);
+          if (question) {
+            const category = classifyError(question);
+            errorCounts.set(
+              category,
+              (errorCounts.get(category) || 0) + w.wrongCount
+            );
+          }
+        });
+
+        const errorTypeDistribution: ErrorTypeDistribution[] = (
+          Object.keys(errorCategoryLabels) as ErrorCategory[]
+        ).map((cat) => ({
+          category: cat,
+          categoryLabel: errorCategoryLabels[cat],
+          count: errorCounts.get(cat) || 0,
+          percentage:
+            totalErrors > 0
+              ? Math.round(((errorCounts.get(cat) || 0) / totalErrors) * 100)
+              : 0,
+        }));
+
+        const weakPoints: WeakPoint[] = [];
+
+        const categoryStats = new Map<string, { correct: number; total: number; questionIds: string[] }>();
+        quizQuestions.forEach((q) => {
+          if (!categoryStats.has(q.category)) {
+            categoryStats.set(q.category, { correct: 0, total: 0, questionIds: [] });
+          }
+          const stats = state.questionStats.find((s) => s.questionId === q.id);
+          const catStat = categoryStats.get(q.category)!;
+          catStat.questionIds.push(q.id);
+          if (stats) {
+            catStat.total += stats.totalAttempts;
+            catStat.correct += stats.correctAttempts;
+          }
+          const wrong = state.wrongQuestions.find((w) => w.questionId === q.id);
+          if (wrong) {
+            catStat.total += wrong.wrongCount;
+          }
+        });
+
+        categoryStats.forEach((stat, category) => {
+          if (stat.total > 0) {
+            const accuracy = Math.round((stat.correct / stat.total) * 100);
+            if (accuracy < 70) {
+              const priority = accuracy < 40 ? "high" : accuracy < 60 ? "medium" : "low";
+              const chapter = chapters.find((c) => c.category === category);
+              weakPoints.push({
+                id: `cat-${category}`,
+                type: "category",
+                name: category,
+                description: `${category}相关知识点正确率较低，建议重点复习${chapter?.title || ""}章节`,
+                errorCount: stat.total - stat.correct,
+                totalAttempts: stat.total,
+                accuracy,
+                priority,
+                relatedQuestionIds: stat.questionIds,
+              });
+            }
+          }
+        });
+
+        chapterMasteryList.forEach((cm) => {
+          if (cm.masteryRate < 60 && cm.totalQuestions > 0) {
+            const existing = weakPoints.find((w) => w.name === cm.category);
+            if (!existing) {
+              const priority = cm.masteryRate < 30 ? "high" : cm.masteryRate < 50 ? "medium" : "low";
+              weakPoints.push({
+                id: `chap-${cm.chapterId}`,
+                type: "chapter",
+                name: cm.chapterTitle,
+                description: `章节掌握度仅 ${cm.masteryRate}%，建议回顾章节内容并加强练习`,
+                errorCount: cm.wrongCount,
+                totalAttempts: cm.correctCount + cm.wrongCount,
+                accuracy: cm.masteryRate,
+                priority,
+                relatedQuestionIds: quizQuestions
+                  .filter((q) => q.category === cm.category)
+                  .map((q) => q.id),
+              });
+            }
+          }
+        });
+
+        weakPoints.sort((a, b) => {
+          const priorityOrder = { high: 0, medium: 1, low: 2 };
+          return priorityOrder[a.priority] - priorityOrder[b.priority] || a.accuracy - b.accuracy;
+        });
+
+        const overallMasteryRate =
+          chapterMasteryList.length > 0
+            ? Math.round(
+                chapterMasteryList.reduce((sum, cm) => sum + cm.masteryRate, 0) /
+                  chapterMasteryList.length
+              )
+            : 0;
+
+        return {
+          totalStudyDays,
+          totalStudyMinutes,
+          avgDailyMinutes,
+          streakDays,
+          chapterMasteryList,
+          dailyStudyRecords,
+          errorTypeDistribution,
+          weakPoints: weakPoints.slice(0, 5),
+          overallMasteryRate,
+        };
       },
     }),
     {

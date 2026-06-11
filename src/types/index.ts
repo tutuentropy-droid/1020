@@ -715,6 +715,80 @@ export interface GameState {
   drugCategory: string;
 }
 
+export type LearningActivityType = "chapter" | "quiz" | "case" | "tdm" | "adr" | "consultation" | "notes" | "game";
+
+export interface LearningSession {
+  id: string;
+  type: LearningActivityType;
+  startTime: string;
+  endTime: string;
+  durationMinutes: number;
+  chapterId?: string;
+  quizId?: string;
+  caseId?: string;
+}
+
+export interface DailyStudyRecord {
+  date: string;
+  totalMinutes: number;
+  activities: Record<LearningActivityType, number>;
+}
+
+export interface ChapterMastery {
+  chapterId: string;
+  chapterTitle: string;
+  category: string;
+  masteryRate: number;
+  totalQuestions: number;
+  correctCount: number;
+  wrongCount: number;
+  quizAttempts: number;
+  avgScore: number;
+}
+
+export type ErrorCategory =
+  | "mechanism"
+  | "indication"
+  | "dosage"
+  | "adverse-reaction"
+  | "contraindication"
+  | "interaction"
+  | "pharmacokinetics"
+  | "clinical-application"
+  | "calculation"
+  | "other";
+
+export interface ErrorTypeDistribution {
+  category: ErrorCategory;
+  categoryLabel: string;
+  count: number;
+  percentage: number;
+}
+
+export interface WeakPoint {
+  id: string;
+  type: "category" | "chapter" | "question-tag";
+  name: string;
+  description: string;
+  errorCount: number;
+  totalAttempts: number;
+  accuracy: number;
+  priority: "high" | "medium" | "low";
+  relatedQuestionIds: string[];
+}
+
+export interface DashboardAnalytics {
+  totalStudyDays: number;
+  totalStudyMinutes: number;
+  avgDailyMinutes: number;
+  streakDays: number;
+  chapterMasteryList: ChapterMastery[];
+  dailyStudyRecords: DailyStudyRecord[];
+  errorTypeDistribution: ErrorTypeDistribution[];
+  weakPoints: WeakPoint[];
+  overallMasteryRate: number;
+}
+
 export interface AppState {
   learningProgress: LearningProgress[];
   quizHistory: QuizHistory[];
@@ -733,6 +807,7 @@ export interface AppState {
   gameHistory: GameHistory[];
   gameAchievements: GameAchievement[];
   viewedKnowledgePopups: string[];
+  learningSessions: LearningSession[];
 }
 
 export interface AppActions {
@@ -766,4 +841,8 @@ export interface AppActions {
   unlockAchievement: (achievementId: string) => void;
   markKnowledgeViewed: (knowledgeId: string) => void;
   checkStageSuccess: () => boolean;
+  startLearningSession: (type: LearningActivityType, metadata?: { chapterId?: string; quizId?: string; caseId?: string }) => string;
+  endLearningSession: (sessionId: string) => void;
+  addLearningSession: (session: Omit<LearningSession, "id">) => void;
+  getDashboardAnalytics: () => DashboardAnalytics;
 }
