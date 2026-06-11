@@ -75,8 +75,21 @@ export default function TDMExercise() {
     });
   }, [currentCase, currentDrug]);
 
+  const disposeChart = useCallback(() => {
+    chartInstance.current?.dispose();
+    chartInstance.current = null;
+  }, []);
+
   const renderChart = useCallback(() => {
     if (!chartRef.current || !curveData || !currentDrug || !currentCase) return;
+
+    if (
+      chartInstance.current &&
+      chartInstance.current.getDom() !== chartRef.current
+    ) {
+      chartInstance.current.dispose();
+      chartInstance.current = null;
+    }
 
     if (!chartInstance.current) {
       chartInstance.current = echarts.init(chartRef.current);
@@ -258,7 +271,8 @@ export default function TDMExercise() {
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [phase, renderChart]);
+    disposeChart();
+  }, [phase, renderChart, disposeChart]);
 
   useEffect(() => {
     if (phase === "curve" || phase === "analysis") {
@@ -274,7 +288,10 @@ export default function TDMExercise() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  useEffect(() => () => disposeChart(), [disposeChart]);
+
   const resetExercise = () => {
+    disposeChart();
     setSelectedCaseId(null);
     setPhase("case");
     setSelectedJudgment(null);
