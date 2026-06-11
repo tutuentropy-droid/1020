@@ -10,6 +10,7 @@ import {
   DoseResult,
   TDMSimulationParams,
   TDMSimulationResult,
+  PKCurveData,
 } from "@/types";
 import { tdmDrugs } from "@/data/tdmDrugs";
 
@@ -385,5 +386,100 @@ export function simulateTDM(
       "稳态浓度：Css = F×D / (Cl×τ)；峰谷浓度：C = Cpeak × e^(-k×t)",
     derivation,
     recommendations,
+  };
+}
+
+export function generatePKCurve(params: {
+  drugId: string;
+  dose: number;
+  dosingInterval: number;
+  numDoses?: number;
+  infusionDuration?: number;
+  weight?: number;
+}): PKCurveData {
+  const {
+    drugId,
+    dose,
+    dosingInterval,
+    numDoses = 5,
+    infusionDuration = 0.5,
+    weight = 70,
+  } = params;
+
+  const drug = tdmDrugs.find((d) => d.id === drugId);
+  if (!drug) {
+    return { points: [], cmax: 0, cmin: 0, cssAvg: 0, timeToSteadyState: 0 };
+  }
+
+  const kel = 0.693 / drug.halfLife;
+  const vdTotal = drug.volumeOfDistribution * weight;
+  const F = drug.bioavailability;
+  const tau = dosingInterval;
+
+  const timeToSteadyState = 4 * drug.halfLife;
+
+  const isIV = infusionDuration > 0 && drug.bioavailability >= 0.9;
+  const tInf = isIV ? infusionDuration : 0;
+
+  const totalTime = numDoses * tau;
+  const dt = totalTime > 100 ? 0.5 : 0.25;
+  const points: { time: number; concentration: number }[] = [];
+
+  for (let t = 0; t <= totalTime + 0.001; t += dt) {
+    let conc = 0;
+
+    for (let n = 0; n < numDoses; n++) {
+      const tSinceDose = t - n * tau;
+
+      if (tSinceDose < 0) continue;
+
+      if (isIV && tInf > 0) {
+        const r0 = (F * dose) / (vdTotal * tInf);
+
+        if (tSinceDose <= tInf) {
+          const term1 = (1 - Math.exp(-kel * tSinceDose)) / kel;
+          conc += r0 * term1 * (n === 0 ? 1 : (1 - Math.exp(-kel * (t - n * tau + tau))) / (1 - Math.exp(-kel * tau)));
+        } else {
+          const term1 = (1 - Math.exp(-kel * tInf)) / kel;
+          const concAtEndInf = r0 * term1;
+          conc += concAtEndInf * Math.exp(-kel * (tSinceDose - tInf));
+        }
+      } else {
+        const ka = 2.0;
+        const ke = kel;
+
+        if (tSinceDose > 0) {
+          const term = Math.exp(-ke * tSinceDose) - Math.exp(-ka * tSinceDose);
+          if (term > 0) {
+            const doseConc = (F * dose * ka) / (vdTotal * (ka - ke)) * term;
+            conc += doseConc;
+          }
+        }
+      }
+    }
+
+    if (conc < 0) conc = 0;
+    points.push({ time: Math.round(t * 1000) / 1000, concentration: conc });
+  }
+
+  const cssAvg = (F * dose) / (drug.clearance * weight * tau);
+
+  let cmax = 0;
+  let cmin = Infinity;
+  const lastIntervalStart = (numDoses - 1) * tau;
+  for (const p of points) {
+    if (p.time >= lastIntervalStart) {
+      if (p.concentration > cmax) cmax = p.concentration;
+      if (p.concentration < cmin) cmin = p.concentration;
+    }
+  }
+  if (!isFinite(cmin)) cmin = 0;
+
+  return {
+    points,
+    cmax,
+    cmin,
+    cssAvg,
+    timeToSteadyState,
   };
 }

@@ -463,3 +463,55 @@ export interface UserConsultationAnswer {
   selectedOptionId: string;
   score: number;
 }
+
+export interface TDMExercisePatient {
+  age: number;
+  gender: "male" | "female";
+  weight: number;
+  creatinineClearance?: number;
+  medicalHistory: string[];
+  currentMedications: string[];
+}
+
+export interface TDMExerciseCase {
+  id: string;
+  drugId: string;
+  title: string;
+  difficulty: "easy" | "medium" | "hard";
+  patient: TDMExercisePatient;
+  currentDose: number;
+  currentInterval: number;
+  steadyStateConcentration: number;
+  administrationRoute: "oral" | "iv";
+  infusionDuration?: number;
+  scenario: string;
+  judgmentOptions: {
+    id: string;
+    label: string;
+    isCorrect: boolean;
+    feedback: string;
+  }[];
+  adjustmentOptions: {
+    id: string;
+    label: string;
+    dose: number;
+    interval: number;
+    isOptimal: boolean;
+    feedback: string;
+  }[];
+  expertAnalysis: string;
+  learningPoints: string[];
+}
+
+export interface PKCurvePoint {
+  time: number;
+  concentration: number;
+}
+
+export interface PKCurveData {
+  points: PKCurvePoint[];
+  cmax: number;
+  cmin: number;
+  cssAvg: number;
+  timeToSteadyState: number;
+}

@@ -15,6 +15,7 @@ import KnowledgeGraphPage from "@/pages/KnowledgeGraph";
 import PharmacologyCalculators from "@/pages/PharmacologyCalculators";
 import ADRSimulation from "@/pages/ADRSimulation";
 import CaseConsultation from "@/pages/CaseConsultation";
+import TDMExercise from "@/pages/TDMExercise";
 import Layout from "@/components/Layout/Layout";
 
 export default function App() {
@@ -27,6 +28,7 @@ export default function App() {
           <Route path="/drugs/:id" element={<DrugDetail />} />
           <Route path="/interactions" element={<DrugInteractionPage />} />
           <Route path="/calculators" element={<PharmacologyCalculators />} />
+          <Route path="/tdm-exercise" element={<TDMExercise />} />
           <Route path="/adr-simulation" element={<ADRSimulation />} />
           <Route path="/case-consultation" element={<CaseConsultation />} />
           <Route path="/cases" element={<CaseLibrary />} />
